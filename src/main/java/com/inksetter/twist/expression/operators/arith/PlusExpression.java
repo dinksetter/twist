@@ -2,6 +2,7 @@ package com.inksetter.twist.expression.operators.arith;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -50,7 +51,7 @@ public class PlusExpression extends AbsractOperExpression {
         
         TwistDataType daysType = days.getType();
         if (daysType == TwistDataType.INTEGER || daysType == TwistDataType.DOUBLE) {
-            LocalDateTime dt = LocalDateTime.from(d.toInstant());
+            LocalDateTime dt = LocalDateTime.ofInstant(d.toInstant(), ZoneId.systemDefault());
 
             long wholeDays = days.asInt();
             double dayPart = days.asDouble() - wholeDays;
@@ -58,7 +59,7 @@ public class PlusExpression extends AbsractOperExpression {
             
             dt = dt.plusDays(wholeDays).plus(msDiff, ChronoUnit.MILLIS);
             
-            return new TwistValue(TwistDataType.DATETIME, Date.from(Instant.from(dt)));
+            return new TwistValue(TwistDataType.DATETIME, Date.from(dt.atZone(ZoneId.systemDefault()).toInstant()));
         }
         else {
             return date;

@@ -1,11 +1,10 @@
 package com.inksetter.twist.expression.operators.arith;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
-
-import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.joda.time.LocalDateTime;
-import org.joda.time.LocalTime;
 
 import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.TwistValue;
@@ -27,15 +26,15 @@ public class MinusExpression extends AbsractOperExpression {
                     return new TwistValue(TwistDataType.DATETIME, null);
                 }
                 
-                LocalDateTime dt = new LocalDateTime(d);
+                LocalDateTime dt = LocalDateTime.ofInstant(d.toInstant(), ZoneId.systemDefault());
                                 
                 int wholeDays = right.asInt();
                 double dayPart = right.asDouble() - wholeDays;
                 int msDiff = (int)(dayPart * 1000.0 * 3600.0 * 24.0);
                 
-                dt = dt.minusDays(wholeDays).minusMillis(msDiff);                
+                dt = dt.minusDays(wholeDays).minus(msDiff, ChronoUnit.MILLIS);
                 
-                return new TwistValue(TwistDataType.DATETIME, dt.toDateTime().toDate());
+                return new TwistValue(TwistDataType.DATETIME, Date.from(dt.atZone(ZoneId.systemDefault()).toInstant()));
             }
             else if (right.getType() == TwistDataType.DATETIME) {
                 Date leftDate = left.asDate();
@@ -45,25 +44,16 @@ public class MinusExpression extends AbsractOperExpression {
                 if (leftDate == null || rightDate == null) {
                     return new TwistValue(TwistDataType.DOUBLE, null);
                 }
-                
-                DateTime leftDt = new DateTime(leftDate);
-                DateTime rightDt = new DateTime(rightDate);
-                
-                int fullDays = Days.daysBetween(rightDt, leftDt).getDays();
-                
-                LocalTime leftTime = new LocalTime(leftDt);
-                LocalTime rightTime = new LocalTime(rightDt);
-                
-                int ms = leftTime.getMillisOfDay() - rightTime.getMillisOfDay();
+                LocalDateTime leftDt = LocalDateTime.ofInstant(leftDate.toInstant(), ZoneId.systemDefault());
+                LocalDateTime rightDt = LocalDateTime.ofInstant(rightDate.toInstant(), ZoneId.systemDefault());
+
+                Duration diff = Duration.between(leftDt, rightDt);
+
+                long fullDays = diff.toDays();
+                long ms = diff.toMillis() - (fullDays * 1000 * 3600 * 24);
+
                 double partial = ((double)ms / (1000.0 * 3600.0 * 24.0));
-                
-                if (partial < 0.0 && leftDate.after(rightDate)) {
-                    partial += 1.0;
-                }
-                else if (partial > 0.0 && rightDate.after(leftDate)) {
-                    partial -= 1.0;
-                }
-                
+
                 double daysDiff = (double) fullDays + partial;
                 
                 return new TwistValue(TwistDataType.DOUBLE, daysDiff);

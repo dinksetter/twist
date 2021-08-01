@@ -44,6 +44,16 @@ public class TwistCoreTest {
         }
         Assert.assertEquals(10000, context.getVariable("a").getValue());
     }
+
+    @Test
+    public void testDateArithmetic() throws TwistException{
+        MyContext context = new MyContext();
+        new TwistParser("a = now(); b = a - 4.4; c = b - a; d = b + 8").parse().execute(context, false);
+        System.out.println(context.getVariable("a"));
+        System.out.println(context.getVariable("b"));
+        System.out.println(context.getVariable("c"));
+        System.out.println(context.getVariable("d"));
+    }
     private static class MyContext extends AbstractContext {
 
         private final List<String> _functionCalls = new ArrayList<>();
