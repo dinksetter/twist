@@ -1,13 +1,16 @@
 package com.inksetter.twist.expression;
 
-import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.TwistException;
+import com.inksetter.twist.exec.ExecContext;
 
-public class MemberExpression implements Expression {
+import java.util.List;
 
-    public MemberExpression(Expression target, String memberName) {
+public class MethodCallExpression implements Expression {
+
+    public MethodCallExpression(Expression target, String memberName, List<Expression> methodArgs) {
         _target = target;
         _memberName = memberName;
+        _methodArgs = methodArgs;
     }
 
     @Override
@@ -23,4 +26,5 @@ public class MemberExpression implements Expression {
 
     private final Expression _target;
     private final String _memberName;
+    private final List<Expression> _methodArgs;
 }

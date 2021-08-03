@@ -352,7 +352,13 @@ public class TwistParser {
                 }
                 String identifier = _scan.current().getValue();
                 _scan.next();
-                expr = new MemberExpression(identifier, expr);
+                if (_scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+                    List<Expression> methodArgs = getFunctionArgs();
+                    expr = new MethodCallExpression(expr, identifier, methodArgs);
+                }
+                else {
+                    expr = new MemberExpression(expr, identifier);
+                }
             }
             else {
                 _scan.next();
@@ -457,6 +463,16 @@ public class TwistParser {
     
     protected Expression buildFunctionExpression(String functionName) throws TwistParseException {
         // This method only gets called if parentheses have been seen
+        List<Expression> functionArgs = getFunctionArgs();
+        FunctionExpression expr = FunctionExpression.getBuiltInFunction(functionName, functionArgs);
+        
+        if (expr == null) {
+            expr = FunctionExpression.getServiceFunction(functionName, functionArgs);
+        }
+        return expr;
+    }
+
+    private List<Expression> getFunctionArgs() throws TwistParseException {
         List<Expression> functionArgs = new ArrayList<>();
 
         if (_scan.tokenType() == TwistTokenType.OPEN_PAREN) {
@@ -472,14 +488,9 @@ public class TwistParser {
             }
             _scan.next();
         }
-        FunctionExpression expr = FunctionExpression.getBuiltInFunction(functionName, functionArgs);
-        
-        if (expr == null) {
-            expr = FunctionExpression.getServiceFunction(functionName, functionArgs);
-        }
-        return expr;
+        return functionArgs;
     }
-    
+
     protected String dequote(String orig) {
         char quotechar = orig.charAt(0);
         int startpos = 1;
