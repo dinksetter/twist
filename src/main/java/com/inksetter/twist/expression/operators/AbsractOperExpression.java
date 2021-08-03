@@ -1,7 +1,6 @@
 package com.inksetter.twist.expression.operators;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistValue;
 import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.expression.Expression;
 
@@ -11,9 +10,9 @@ public abstract class AbsractOperExpression implements Expression {
         _right = right;
     }
     
-    public TwistValue evaluate(ExecContext ctx) throws TwistException {
-        TwistValue leftValue = _left.evaluate(ctx);
-        TwistValue rightValue = _right.evaluate(ctx);
+    public Object evaluate(ExecContext ctx) throws TwistException {
+        Object leftValue = _left.evaluate(ctx);
+        Object rightValue = _right.evaluate(ctx);
         
         return doOper(leftValue, rightValue);
     }
@@ -27,8 +26,7 @@ public abstract class AbsractOperExpression implements Expression {
     	return "";
     }
     
-    protected abstract TwistValue doOper(TwistValue left, TwistValue right)
-        throws TwistException;
+    protected abstract Object doOper(Object left, Object right) throws TwistException;
     
     private final Expression _left;
     private final Expression _right;

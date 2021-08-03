@@ -1,6 +1,5 @@
 package com.inksetter.twist.expression.operators.compare;
 
-import com.inksetter.twist.TwistValue;
 import com.inksetter.twist.expression.Expression;
 
 public class NotEqualsExpression extends EqualsExpression {
@@ -9,7 +8,7 @@ public class NotEqualsExpression extends EqualsExpression {
     }
     
     @Override
-    protected boolean compare(TwistValue left, TwistValue right) {
+    protected boolean compare(Object left, Object right) {
         return !super.compare(left, right);
     }
     

@@ -4,28 +4,17 @@ import java.util.Date;
 import java.util.List;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.expression.Expression;
 
 /**
  * Casts the argument as a date.
  */
-public class DateFunction extends BaseFunction {
+public class DateFunction extends SingleArgFunction {
 
     @Override
-    protected TwistValue invoke(ExecContext ctx, List<TwistValue> args) throws TwistException {
-        if (args.size() != 1) {
-            throw new FunctionArgumentException("expected single argument");
-        }
-        
-        TwistValue arg = args.get(0);
-        
-        Date d = arg.asDate();
-        if (d == null && !arg.isNull()) {
-            throw new FunctionArgumentException("Invalid date: " + arg.asString());
-        }
-        
-        return new TwistValue(TwistDataType.DATETIME, d);
+    protected Date invoke(Object arg) {
+        return ValueUtils.asDate(arg);
     }
 }

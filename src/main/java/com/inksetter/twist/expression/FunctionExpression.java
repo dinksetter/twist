@@ -5,12 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistValue;
 import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.expression.function.Base64DecodeFunction;
 import com.inksetter.twist.expression.function.Base64EncodeFunction;
 import com.inksetter.twist.expression.function.ExternalFunction;
-import com.inksetter.twist.expression.function.ConditionalFunction;
 import com.inksetter.twist.expression.function.DateFunction;
 import com.inksetter.twist.expression.function.DoubleFunction;
 import com.inksetter.twist.expression.function.IndexOfFunction;
@@ -56,7 +54,7 @@ public class FunctionExpression implements Expression {
         _function = function;
     }
     
-    public TwistValue evaluate(ExecContext ctx) throws TwistException {
+    public Object evaluate(ExecContext ctx) throws TwistException {
         return _function.evaluate(ctx, _args);
     }
     
@@ -98,7 +96,6 @@ public class FunctionExpression implements Expression {
         _FUNCTIONS.put("len", new LengthFunction());
         _FUNCTIONS.put("length", new LengthFunction());
         _FUNCTIONS.put("sprintf", new SprintfFunction());
-        _FUNCTIONS.put("iif", new ConditionalFunction());
         _FUNCTIONS.put("ifnull", new IfNullFunction());
         _FUNCTIONS.put("min", new MinFunction());
         _FUNCTIONS.put("max", new MaxFunction());

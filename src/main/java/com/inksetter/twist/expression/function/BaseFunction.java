@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistValue;
 import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.expression.Expression;
 
@@ -14,8 +13,8 @@ import com.inksetter.twist.expression.Expression;
 public abstract class BaseFunction implements TwistFunction {
 
     @Override
-    public TwistValue evaluate(ExecContext ctx, List<Expression> args) throws TwistException {
-        List<TwistValue> argValues = new ArrayList<>();
+    public Object evaluate(ExecContext ctx, List<Expression> args) throws TwistException {
+        List<Object> argValues = new ArrayList<>();
         
         for (Expression arg : args) {
             argValues.add(arg.evaluate(ctx));
@@ -33,5 +32,9 @@ public abstract class BaseFunction implements TwistFunction {
      * @return a single value.
      * @throws TwistException if an error occurred during function execution.
      */
-    protected abstract TwistValue invoke(ExecContext ctx, List<TwistValue> argValues) throws TwistException;
+    protected abstract Object invoke(ExecContext ctx, List<Object> argValues) throws TwistException;
+
+    protected void validateArgs(List<Expression> args) throws TwistException {
+        // do nothing.
+    }
 }

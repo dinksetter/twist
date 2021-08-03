@@ -3,7 +3,6 @@ package com.inksetter.twist.expression.function;
 import java.util.List;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistValue;
 import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.expression.Expression;
 
@@ -26,5 +25,5 @@ public interface TwistFunction {
      * @return a single value.
      * @throws TwistException if an error occurs.
      */
-    TwistValue evaluate(ExecContext ctx, List<Expression> args) throws TwistException;
+    Object evaluate(ExecContext ctx, List<Expression> args) throws TwistException;
 }

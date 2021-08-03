@@ -1,8 +1,6 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
 import com.inksetter.twist.exec.ExecContext;
 
 public class ReferenceExpression implements Expression {
@@ -10,14 +8,8 @@ public class ReferenceExpression implements Expression {
         _name = name;
     }
     
-    public TwistValue evaluate(ExecContext ctx) throws TwistException {
-        TwistValue tmp = ctx.getVariable(_name);
-
-        if (tmp == null) {
-            return new TwistValue(TwistDataType.STRING, null);
-        } else {
-            return tmp;
-        }
+    public Object evaluate(ExecContext ctx) throws TwistException {
+        return ctx.getVariable(_name);
     }
     
     // @see java.lang.Object#toString()

@@ -1,7 +1,6 @@
 package com.inksetter.twist.expression.operators.arith;
 
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.expression.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 
@@ -10,21 +9,32 @@ public class DivisionExpression extends AbsractOperExpression {
         super(left, right);
     }
     
-    protected TwistValue doOper(TwistValue left, TwistValue right)
+    protected Object doOper(Object left, Object right)
             throws DivideByZeroException {
-        double leftNum = left.asDouble();
-        double rightNum = right.asDouble();
-        
-        if (rightNum == 0.0) {
-            throw new DivideByZeroException();
+        if (left instanceof Integer && right instanceof Integer) {
+            int leftNum = ValueUtils.asInt(left);
+            int rightNum = ValueUtils.asInt(right);
+
+            if (rightNum == 0) {
+                throw new DivideByZeroException();
+            }
+
+            return leftNum / rightNum;
         }
-        
-        return new TwistValue(TwistDataType.DOUBLE, leftNum / rightNum);
+        else {
+            double leftNum = ValueUtils.asDouble(left);
+            double rightNum = ValueUtils.asDouble(right);
+
+            if (rightNum == 0.0) {
+                throw new DivideByZeroException();
+            }
+
+            return leftNum / rightNum;
+        }
     }
     
     @Override
     protected String operString() {
         return " / ";
     }
-
 }

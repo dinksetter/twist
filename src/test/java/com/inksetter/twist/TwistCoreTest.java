@@ -1,18 +1,13 @@
 package com.inksetter.twist;
 
 import com.inksetter.twist.exec.AbstractContext;
-import com.inksetter.twist.exec.ExecContext;
-import com.inksetter.twist.exec.ExecutableStatement;
 import com.inksetter.twist.exec.StatementSequence;
-import com.inksetter.twist.parser.TwistParseException;
 import com.inksetter.twist.parser.TwistParser;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 public class TwistCoreTest {
     @Test
@@ -25,12 +20,12 @@ public class TwistCoreTest {
         StatementSequence parsed = new TwistParser(script).parse();
         MyContext context = new MyContext();
         parsed.execute(context, false);
-        Assert.assertEquals(100, context.getVariable("a").getValue());
-        Assert.assertEquals(104, context.getVariable("b").getValue());
+        Assert.assertEquals(100, context.getVariable("a"));
+        Assert.assertEquals(104, context.getVariable("b"));
         Assert.assertEquals(1, context._functionCalls.size());
         Assert.assertEquals(1, context._functionArgs.size());
         Assert.assertEquals("print", context._functionCalls.get(0));
-        Assert.assertEquals("WOW 104", context._functionArgs.get(0).get(0).getValue());
+        Assert.assertEquals("WOW 104", context._functionArgs.get(0).get(0));
     }
 
     @Test
@@ -42,7 +37,7 @@ public class TwistCoreTest {
         for (int i = 0; i < 10000; i++) {
             increment.execute(context, false);
         }
-        Assert.assertEquals(10000, context.getVariable("a").getValue());
+        Assert.assertEquals(10000, context.getVariable("a"));
     }
 
     @Test
@@ -57,13 +52,13 @@ public class TwistCoreTest {
     private static class MyContext extends AbstractContext {
 
         private final List<String> _functionCalls = new ArrayList<>();
-        private final List<List<TwistValue>> _functionArgs = new ArrayList<>();
+        private final List<List<Object>> _functionArgs = new ArrayList<>();
 
         @Override
-        public TwistValue invokeExternalFunction(String functionName, List<TwistValue> argValues) {
+        public Object invokeExternalFunction(String functionName, List<Object> argValues) {
             _functionCalls.add(functionName);
             _functionArgs.add(argValues);
-            return new TwistValue(-3.2);
+            return -3.2;
         }
 
         @Override

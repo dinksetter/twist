@@ -4,30 +4,22 @@ import java.util.List;
 
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.expression.Expression;
 
 /**
  * Returns the smallest of a list of values.
  */
 public class MinFunction extends BaseFunction {
-
     @Override
-    protected TwistValue invoke(ExecContext ctx, List<TwistValue> args) throws TwistException {
-        if (args.size() == 0) {
-            throw new FunctionArgumentException("expected arguments");
-        }
+    protected Object invoke(ExecContext ctx, List<Object> args) throws TwistException {
+        Object minValue = null;
         
-        TwistValue minValue = null;
-        
-        for (TwistValue a : args) {
-            if (minValue == null || minValue.asDouble() > a.asDouble()) {
+        for (Object a : args) {
+            if (minValue == null || ValueUtils.compare(minValue, a) > 0) {
                 minValue = a;
             }
-        }
-        
-        if (minValue == null) {
-            minValue = new TwistValue(TwistDataType.INTEGER, null);
         }
         
         return minValue;

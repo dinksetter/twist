@@ -1,9 +1,11 @@
 package com.inksetter.twist.expression.operators.compare;
 
 import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.expression.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
+
+import java.util.Objects;
 
 public class EqualsExpression extends AbsractOperExpression {
     public EqualsExpression(Expression left, Expression right) {
@@ -17,36 +19,27 @@ public class EqualsExpression extends AbsractOperExpression {
      * @param right any data value.  This parameter may not be null
      * @return true, if the values are considered equal
      */
-    public static boolean valueEquality(TwistValue left, TwistValue right) {
-        if (left.isNull() && right.isNull()) return true;
-        if (left.isNull() || right.isNull()) return false;
+    public static boolean valueEquality(Object left, Object right) {
         
-        if (left.getType() == right.getType()) {
-            return left.getValue().equals(right.getValue());
+        TwistDataType leftType = ValueUtils.getType(left);
+        TwistDataType rightType = ValueUtils.getType(right);
+
+        if (leftType == TwistDataType.INTEGER || rightType == TwistDataType.INTEGER) {
+            return ValueUtils.asInt(left) == ValueUtils.asInt(right);
         }
-        else if (left.getType() == TwistDataType.STRING || right.getType() == TwistDataType.STRING) {
-            return left.asString().equals(right.asString());
+        else if (leftType == TwistDataType.DOUBLE || rightType == TwistDataType.DOUBLE) {
+            return ValueUtils.asDouble(left) == ValueUtils.asDouble(right);
         }
-        else if (left.getType() == TwistDataType.DOUBLE || right.getType() == TwistDataType.DOUBLE) {
-            return Double.doubleToLongBits(left.asDouble()) == Double
-                .doubleToLongBits(right.asDouble());
-        }
-        else if (left.getType() == TwistDataType.INTEGER || right.getType() == TwistDataType.INTEGER) {
-            return left.asInt() == right.asInt();
-        }
-        else if (left.getType() == TwistDataType.BOOLEAN || right.getType() == TwistDataType.BOOLEAN) {
-            return left.asBoolean() == right.asBoolean();
-        }
-        else {
-            return left.asString().equals(right.asString());
-        }
+        
+        return Objects.equals(left, right);
     }
     
-    protected TwistValue doOper(TwistValue left, TwistValue right) {
-        return new TwistValue(TwistDataType.BOOLEAN, compare(left, right));
+    @Override
+    protected Object doOper(Object left, Object right) {
+        return compare(left, right);
     }
     
-    protected boolean compare(TwistValue left, TwistValue right) {
+    protected boolean compare(Object left, Object right) {
         return EqualsExpression.valueEquality(left, right);
     }
 

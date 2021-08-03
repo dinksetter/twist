@@ -2,7 +2,6 @@ package com.inksetter.twist.expression;
 
 import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistValue;
 
 public class MemberExpression implements Expression {
 
@@ -12,7 +11,7 @@ public class MemberExpression implements Expression {
     }
 
     @Override
-    public TwistValue evaluate(ExecContext ctx) throws TwistException {
+    public Object evaluate(ExecContext ctx) throws TwistException {
         return null;
     }
 

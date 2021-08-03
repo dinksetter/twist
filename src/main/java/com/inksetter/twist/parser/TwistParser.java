@@ -408,7 +408,7 @@ public class TwistParser {
                         numericValue.indexOf('e') != -1 ||
                         numericValue.indexOf('E') != -1) {
                     // We've got a floating point value on our hands.
-                    numericExpression = new LiteralExpression(TwistDataType.DOUBLE, Double.valueOf(numericValue));
+                    numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
                 }
                 else {
                     // Deal with large numeric values.
@@ -416,10 +416,10 @@ public class TwistParser {
                     
                     if (tmpValue.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0 ||
                         tmpValue.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
-                        numericExpression = new LiteralExpression(TwistDataType.DOUBLE, tmpValue.doubleValue());
+                        numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
                     }
                     else {
-                        numericExpression = new LiteralExpression(TwistDataType.INTEGER, tmpValue.intValue());
+                        numericExpression = new IntegerLiteral(tmpValue.intValue());
                     }
                 }
             }
@@ -436,7 +436,7 @@ public class TwistParser {
         case DOUBLE_STRING:
             String unquoted = _scan.current().getValue();
             _scan.next();
-            return new LiteralExpression(TwistDataType.STRING, dequote(unquoted));
+            return new StringLiteral(dequote(unquoted));
             
         case NULL_TOKEN:
             _scan.next();

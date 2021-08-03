@@ -2,7 +2,6 @@ package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
 import com.inksetter.twist.exec.ExecContext;
 
 public class LiteralExpression implements Expression {
@@ -15,8 +14,8 @@ public class LiteralExpression implements Expression {
         _value = value;
     }
     
-    public TwistValue evaluate(ExecContext ctx) throws TwistException {
-        return new TwistValue(_type, _value);
+    public Object evaluate(ExecContext ctx) throws TwistException {
+        return _value;
     }
     
     // @see java.lang.Object#toString()
@@ -25,7 +24,6 @@ public class LiteralExpression implements Expression {
         return "(TYPE: " + _type +", VALUE: " + _value + ")";
     }
 
-    
     private final TwistDataType _type;
     private final Object _value;
 }

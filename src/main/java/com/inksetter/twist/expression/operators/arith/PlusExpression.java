@@ -1,38 +1,35 @@
 package com.inksetter.twist.expression.operators.arith;
 
-import java.time.Instant;
+import com.inksetter.twist.TwistDataType;
+import com.inksetter.twist.ValueUtils;
+import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.expression.operators.AbsractOperExpression;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
-import com.inksetter.twist.expression.Expression;
-import com.inksetter.twist.expression.operators.AbsractOperExpression;
 
 public class PlusExpression extends AbsractOperExpression {
     public PlusExpression(Expression left, Expression right) {
         super(left, right);
     }
     
-    protected TwistValue doOper(TwistValue left, TwistValue right) {
-        if (left.getType() == TwistDataType.DATETIME) {
-            return addToDate(left, right);
+    protected Object doOper(Object left, Object right) {
+        if (ValueUtils.getType(left) == TwistDataType.DATETIME) {
+            return addToDate(ValueUtils.asDate(left), right);
         }
-        else if (right.getType() == TwistDataType.DATETIME) {
-            return (addToDate(right, left));
+        else if (ValueUtils.getType(right) == TwistDataType.DATETIME) {
+            return (addToDate(ValueUtils.asDate(right), left));
         }
-        else if (left.getType() == TwistDataType.STRING) {
-            return new TwistValue(left.asString() + right.asString());
+        else if (left instanceof String) {
+            return left + ValueUtils.asString(right);
+        }
+        else if (left instanceof Double || right instanceof Double) {
+            return ValueUtils.asDouble(left) + ValueUtils.asDouble(right);
         }
         else {
-            if (left.getType() == TwistDataType.DOUBLE || right.getType() == TwistDataType.DOUBLE) {
-                return new TwistValue(TwistDataType.DOUBLE, left.asDouble() + right.asDouble());
-            }
-            else {
-                return new TwistValue(TwistDataType.INTEGER, left.asInt() + right.asInt());
-            }
+            return ValueUtils.asInt(left) + ValueUtils.asInt(right);
         }
     }
 
@@ -41,29 +38,26 @@ public class PlusExpression extends AbsractOperExpression {
         return " + ";
     }
     
-    private TwistValue addToDate(TwistValue date, TwistValue days) {
-        Date d = date.asDate();
+    private Date addToDate(Date d, Object days) {
 
         // If the left side is null, return a null result.
         if (d == null) {
-            return new TwistValue(TwistDataType.DATETIME, null);
+            return null;
         }
-        
-        TwistDataType daysType = days.getType();
-        if (daysType == TwistDataType.INTEGER || daysType == TwistDataType.DOUBLE) {
+        else if (days instanceof Long || days instanceof Integer) {
             LocalDateTime dt = LocalDateTime.ofInstant(d.toInstant(), ZoneId.systemDefault());
-
-            long wholeDays = days.asInt();
-            double dayPart = days.asDouble() - wholeDays;
+            long wholeDays = ((Number) days).longValue();
+            dt = dt.plusDays(wholeDays);
+            return Date.from(dt.atZone(ZoneId.systemDefault()).toInstant());
+        }
+        else if (days instanceof Number) {
+            LocalDateTime dt = LocalDateTime.ofInstant(d.toInstant(), ZoneId.systemDefault());
+            long wholeDays = ((Number) days).longValue();
+            double dayPart = (Double)days - wholeDays;
             long msDiff = (long)(dayPart * 1000.0 * 3600.0 * 24.0);
-            
             dt = dt.plusDays(wholeDays).plus(msDiff, ChronoUnit.MILLIS);
-            
-            return new TwistValue(TwistDataType.DATETIME, Date.from(dt.atZone(ZoneId.systemDefault()).toInstant()));
+            return Date.from(dt.atZone(ZoneId.systemDefault()).toInstant());
         }
-        else {
-            return date;
-        }
+        return d;
     }
-
 }

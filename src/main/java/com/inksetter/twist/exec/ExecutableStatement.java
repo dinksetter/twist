@@ -3,7 +3,7 @@ package com.inksetter.twist.exec;
 import java.util.List;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.expression.Expression;
 import org.apache.log4j.Logger;
 
@@ -41,7 +41,8 @@ public class ExecutableStatement implements Expression {
         _finallyBlock = finallyBlock;
     }
 
-    public TwistValue evaluate(ExecContext exec) throws TwistException {
+    @Override
+    public Object evaluate(ExecContext exec) throws TwistException {
         return _executeStatement(exec);
     }
 
@@ -93,11 +94,11 @@ public class ExecutableStatement implements Expression {
     }
 
 
-    private TwistValue _executeStatement(ExecContext exec) throws TwistException {
+    private Object _executeStatement(ExecContext exec) throws TwistException {
         if (_ifTest != null) {
             _logger.debug("if (" + _ifTest + ") ... ");
-            TwistValue testValue = _ifTest.evaluate(exec);
-            if (testValue.asBoolean()) {
+            Object testValue = _ifTest.evaluate(exec);
+            if (ValueUtils.asBoolean(testValue)) {
                 _logger.debug("If-test passed - executing if block");
                 _ifBlock.evaluate(exec);
             }
@@ -110,7 +111,7 @@ public class ExecutableStatement implements Expression {
             }
 
             // If statements do not have value, just side effects.
-            return TwistValue.NULL;
+            return null;
         }
 
         if (_subSequence != null) {
@@ -156,14 +157,14 @@ public class ExecutableStatement implements Expression {
         }
         else {
             if (_expression != null) {
-                TwistValue value = _expression.evaluate(exec);
+                Object value = _expression.evaluate(exec);
                 if (_assignmentIdentifier != null) {
                     exec.setVariable(_assignmentIdentifier, value);
                 }
                 return value;
             }
         }
-        return TwistValue.NULL;
+        return null;
     }
 
     private static final Logger _logger =
