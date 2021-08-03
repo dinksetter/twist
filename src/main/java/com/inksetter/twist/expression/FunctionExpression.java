@@ -99,7 +99,7 @@ public class FunctionExpression implements Expression {
         _FUNCTIONS.put("length", new LengthFunction());
         _FUNCTIONS.put("sprintf", new SprintfFunction());
         _FUNCTIONS.put("iif", new ConditionalFunction());
-        _FUNCTIONS.put("nvl", new IfNullFunction());
+        _FUNCTIONS.put("ifnull", new IfNullFunction());
         _FUNCTIONS.put("min", new MinFunction());
         _FUNCTIONS.put("max", new MaxFunction());
         _FUNCTIONS.put("substr", new SubstrFunction());

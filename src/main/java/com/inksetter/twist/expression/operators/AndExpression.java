@@ -29,7 +29,7 @@ public class AndExpression implements Expression {
     
     @Override
     public String toString() {
-        return _left.toString() + " AND " + _right.toString();
+        return _left.toString() + " && " + _right.toString();
     }
     
     private final Expression _left;

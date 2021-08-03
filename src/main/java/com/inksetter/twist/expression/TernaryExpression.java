@@ -16,9 +16,9 @@ public class TernaryExpression implements Expression {
     }
     
     public TwistValue evaluate(ExecContext ctx) throws TwistException {
-        TwistValue leftValue = _testExpr.evaluate(ctx);
+        TwistValue testValue = _testExpr.evaluate(ctx);
 
-        if (leftValue.asBoolean()) {
+        if (testValue.asBoolean()) {
             return _thenExpr.evaluate(ctx);
         }
         else {
