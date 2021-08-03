@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.inksetter.twist.TwistException;
+import com.inksetter.twist.TwistValue;
 
 public class StatementSequence implements Serializable {
 
@@ -17,16 +18,18 @@ public class StatementSequence implements Serializable {
         _statements.add(statement);
     }
     
-    public void execute(ExecContext exec, boolean newStack) throws TwistException {
+    public TwistValue execute(ExecContext exec, boolean newStack) throws TwistException {
         if (newStack) exec.pushStack();
+        TwistValue lastValue = null;
         try {
             for (ExecutableStatement statement : _statements) {
-                statement.evaluate(exec);
+                lastValue = statement.evaluate(exec);
             }
         }
         finally {
             if (newStack) exec.popStack();
         }
+        return lastValue;
     }
 
     // @see java.lang.Object#toString()

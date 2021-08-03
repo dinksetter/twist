@@ -115,8 +115,7 @@ public class ExecutableStatement implements Expression {
 
         if (_subSequence != null) {
             try {
-                _subSequence.execute(exec, true);
-                return TwistValue.NULL;
+                return _subSequence.execute(exec, true);
             } catch (Exception e) {
                 if (_catchBlocks != null) {
                     // If we're set up to catch errors, do so.
