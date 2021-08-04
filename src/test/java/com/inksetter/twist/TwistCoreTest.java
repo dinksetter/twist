@@ -7,7 +7,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TwistCoreTest {
     @Test
@@ -49,6 +51,34 @@ public class TwistCoreTest {
         System.out.println(context.getVariable("c"));
         System.out.println(context.getVariable("d"));
     }
+
+    public static class TestClass {
+        public String getThing1() { return "aaaa"; }
+        public String getThing2() { return "xxxx"; }
+    }
+
+    @Test
+    public void testProperties() throws TwistException{
+        MyContext context = new MyContext();
+        Map<String, Object> testMap = new HashMap<>();
+
+        testMap.put("a", "a-value");
+        testMap.put("b", 3.14);
+
+        TestClass testObj = new TestClass();
+
+        context.setVariable("foo", testMap);
+        context.setVariable("bar", testObj);
+
+        new TwistParser("a = bar.thing1; b = bar.thing2").parse().execute(context, false);
+        new TwistParser("c = foo.a; d = foo.b").parse().execute(context, false);
+        System.out.println(context.getVariable("a"));
+        System.out.println(context.getVariable("b"));
+        System.out.println(context.getVariable("c"));
+        System.out.println(context.getVariable("d"));
+    }
+
+
     private static class MyContext extends AbstractContext {
 
         private final List<String> _functionCalls = new ArrayList<>();
