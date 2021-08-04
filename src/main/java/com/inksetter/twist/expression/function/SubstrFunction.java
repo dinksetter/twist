@@ -1,11 +1,10 @@
 package com.inksetter.twist.expression.function;
 
-import java.util.List;
-
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.exec.ExecContext;
+
+import java.util.List;
 
 /**
  * Returns a new string that is a substring of the string argument.
@@ -13,17 +12,16 @@ import com.inksetter.twist.exec.ExecContext;
 public class SubstrFunction extends BaseFunction {
 
     @Override
-    protected TwistValue invoke(ExecContext ctx, List<TwistValue> args) throws TwistException {
+    protected String invoke(ExecContext ctx, List<Object> args) throws TwistException {
         if (args.size() < 2 || args.size() > 3) {
             throw new FunctionArgumentException("expected 2 or 3 arguments");
         }
         
-        String format = args.get(0).asString();
-        int start = args.get(1).asInt();
-        
-        
+        String format = ValueUtils.asString(args.get(0));
+        int start = ValueUtils.asInt(args.get(1));
+
         if (format == null) {
-            return new TwistValue(TwistDataType.STRING, null);
+            return null;
         }
             
         // Convert to 0-based index with the following rules:
@@ -41,20 +39,20 @@ public class SubstrFunction extends BaseFunction {
         }
         
         if (args.size() > 2) {
-            int length = args.get(2).asInt();
+            int length = ValueUtils.asInt(args.get(2));
             
             if (length <= 0) {
-                return new TwistValue(TwistDataType.STRING, "");
+                return "";
             }
             
             if ((length + start) > format.length()) {
                 length = format.length() - start;
             }
             
-            return new TwistValue(TwistDataType.STRING, format.substring(start, length + start));
+            return format.substring(start, length + start);
         }
         else {
-            return new TwistValue(TwistDataType.STRING, format.substring(start));
+            return format.substring(start);
         }
     }
 }

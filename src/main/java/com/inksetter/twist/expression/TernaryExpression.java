@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.exec.ExecContext;
 
 /**
@@ -15,10 +15,10 @@ public class TernaryExpression implements Expression {
         _elseExpr = elseExpr;
     }
     
-    public TwistValue evaluate(ExecContext ctx) throws TwistException {
-        TwistValue leftValue = _testExpr.evaluate(ctx);
+    public Object evaluate(ExecContext ctx) throws TwistException {
+        Object testValue = _testExpr.evaluate(ctx);
 
-        if (leftValue.asBoolean()) {
+        if (ValueUtils.asBoolean(testValue)) {
             return _thenExpr.evaluate(ctx);
         }
         else {

@@ -2,17 +2,23 @@ package com.inksetter.twist.parser;
 
 import com.inksetter.twist.exec.ExecutableStatement;
 import com.inksetter.twist.exec.StatementSequence;
+import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.expression.FunctionExpression;
+import com.inksetter.twist.expression.operators.arith.MultiplyExpression;
+import com.inksetter.twist.expression.operators.arith.PlusExpression;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TwistParserTest {
     
 
     @Test
-    public void testEmptyScript() throws TwistParseException {
+    public void testEmptyScript() {
         try {
             StatementSequence parsed = new TwistParser("").parse();
             fail("Expected parse exception, got [" + parsed + "]");
@@ -52,5 +58,23 @@ public class TwistParserTest {
         ExecutableStatement statement = statements.get(0);
         String assignTo = statement.getAssignment();
         assertEquals("foo", assignTo);
+    }
+
+    @Test
+    public void testFunctionCall() throws TwistParseException {
+        String script =
+                "a = 1000 * func('var' + b);" +
+                "func2(a);";
+        StatementSequence parsed = new TwistParser(script).parse();
+        List<ExecutableStatement> statements = parsed.getStatements();
+        assertEquals(2, statements.size());
+        ExecutableStatement statement = statements.get(0);
+        String assignTo = statement.getAssignment();
+        assertEquals("a", assignTo);
+        Expression expr = statement.getExpression();
+        assertTrue(expr instanceof MultiplyExpression);
+        statement = statements.get(1);
+        expr = statement.getExpression();
+        assertTrue(expr instanceof FunctionExpression);
     }
 }

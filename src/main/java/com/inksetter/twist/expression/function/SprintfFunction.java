@@ -1,11 +1,10 @@
 package com.inksetter.twist.expression.function;
 
-import java.util.List;
-
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.exec.ExecContext;
+
+import java.util.List;
 
 /**
  * Calls the equivalent of the C sprintf function.  This method actually
@@ -14,19 +13,19 @@ import com.inksetter.twist.exec.ExecContext;
 public class SprintfFunction extends BaseFunction {
 
     @Override
-    protected TwistValue invoke(ExecContext ctx, List<TwistValue> args) throws TwistException {
+    protected String invoke(ExecContext ctx, List<Object> args) throws TwistException {
         if (args.size() < 1) {
             throw new FunctionArgumentException("expected format argument");
         }
         
-        String format = args.get(0).asString();
+        String format = ValueUtils.asString(args.get(0));
         
         Object[] sprintfArgs = new Object[args.size() - 1];
         
         for (int i = 0; i < sprintfArgs.length; i++) {
-            sprintfArgs[i] = args.get(i + 1).getValue();
+            sprintfArgs[i] = args.get(i + 1);
         }
         
-        return new TwistValue(TwistDataType.STRING, String.format(format, sprintfArgs));
+        return String.format(format, sprintfArgs);
     }
 }

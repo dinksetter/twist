@@ -1,11 +1,11 @@
 package com.inksetter.twist.exec;
 
+import com.inksetter.twist.TwistException;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import com.inksetter.twist.TwistException;
 
 public class StatementSequence implements Serializable {
 
@@ -17,16 +17,18 @@ public class StatementSequence implements Serializable {
         _statements.add(statement);
     }
     
-    public void execute(ExecContext exec, boolean newStack) throws TwistException {
+    public Object execute(ExecContext exec, boolean newStack) throws TwistException {
         if (newStack) exec.pushStack();
+        Object lastValue = null;
         try {
             for (ExecutableStatement statement : _statements) {
-                statement.evaluate(exec);
+                lastValue = statement.evaluate(exec);
             }
         }
         finally {
             if (newStack) exec.popStack();
         }
+        return lastValue;
     }
 
     // @see java.lang.Object#toString()

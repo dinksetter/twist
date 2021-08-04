@@ -2,8 +2,6 @@
 
 package com.inksetter.twist.exec;
 
-import com.inksetter.twist.TwistValue;
-
 import java.util.List;
 
 public interface ExecContext {
@@ -12,11 +10,11 @@ public interface ExecContext {
 
     void pushStack();
 
-    TwistValue getVariable(String name);
+    Object getVariable(String name);
 
-    void setVariable(String name, TwistValue value);
+    void setVariable(String name, Object value);
 
     boolean lookupExternalFunction(String functionName);
 
-    TwistValue invokeExternalFunction(String functionName, List<TwistValue> argValues);
+    Object invokeExternalFunction(String functionName, List<Object> argValues);
 }

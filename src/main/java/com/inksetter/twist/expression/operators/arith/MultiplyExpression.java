@@ -1,7 +1,6 @@
 package com.inksetter.twist.expression.operators.arith;
 
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.expression.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 
@@ -10,12 +9,12 @@ public class MultiplyExpression extends AbsractOperExpression {
         super(left, right);
     }
     
-    protected TwistValue doOper(TwistValue left, TwistValue right) {
-        if (left.getType() == TwistDataType.DOUBLE || right.getType() == TwistDataType.DOUBLE) {
-            return new TwistValue(TwistDataType.DOUBLE, left.asDouble() * right.asDouble());
+    protected Object doOper(Object left, Object right) {
+        if (left instanceof Double || right instanceof Double) {
+            return ValueUtils.asDouble(left) * ValueUtils.asDouble(right);
         }
         else {
-            return new TwistValue(TwistDataType.INTEGER, left.asInt() * right.asInt());
+            return ValueUtils.asInt(left) * ValueUtils.asInt(right);
         }
     }
     

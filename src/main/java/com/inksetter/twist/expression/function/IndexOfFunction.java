@@ -1,11 +1,10 @@
 package com.inksetter.twist.expression.function;
 
-import java.util.List;
-
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.exec.ExecContext;
+
+import java.util.List;
 
 /**
  * Returns the index of a string within another string.  -1 indicates that
@@ -14,19 +13,19 @@ import com.inksetter.twist.exec.ExecContext;
 public class IndexOfFunction extends BaseFunction {
 
     @Override
-    protected TwistValue invoke(ExecContext ctx, List<TwistValue> args) throws TwistException {
+    protected Integer invoke(ExecContext ctx, List<Object> args) throws TwistException {
         if (args.size() != 2 && args.size() != 3) {
             throw new FunctionArgumentException("expected 2 or 3 arguments");
         }
         
-        String source = args.get(0).asString();
-        String search = args.get(1).asString();
+        String source = ValueUtils.asString(args.get(0));
+        String search = ValueUtils.asString(args.get(1));
         int start = 0;
         
         if (args.size() == 3) {
-            start = args.get(2).asInt();
+            start = ValueUtils.asInt(args.get(2));
         }
         
-        return new TwistValue(TwistDataType.INTEGER, source.indexOf(search, start) + 1);
+        return source.indexOf(search, start) + 1;
     }
 }

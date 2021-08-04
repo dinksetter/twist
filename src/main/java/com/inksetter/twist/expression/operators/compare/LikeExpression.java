@@ -1,7 +1,5 @@
 package com.inksetter.twist.expression.operators.compare;
 
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
 import com.inksetter.twist.expression.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 
@@ -10,13 +8,11 @@ public class LikeExpression extends AbsractOperExpression {
         super(left, right);
     }
     
-    protected TwistValue doOper(TwistValue left, TwistValue right) {
-        String leftValue = String.valueOf(left.getValue());
-        String rightValue = String.valueOf(right.getValue());
+    protected Boolean doOper(Object left, Object right) {
+        String leftValue = String.valueOf(left);
+        String rightValue = String.valueOf(right);
         
-        boolean likeMatches = new LikeMatcher(rightValue).match(leftValue);
-        
-        return new TwistValue(TwistDataType.BOOLEAN, likeMatches);
+        return new LikeMatcher(rightValue).match(leftValue);
     }
     
     @Override

@@ -14,6 +14,7 @@ public enum TwistDataType
     // All others are not significant.
     BOOLEAN(Boolean.class),
     INTEGER(Integer.class),
+    LONG(Long.class),
     DOUBLE(Double.class),
     DATETIME(Date.class),
     STRING(String.class),
@@ -40,19 +41,21 @@ public enum TwistDataType
      * <code>UNKNOWN</code> is returned.
      */
     public static TwistDataType lookupClass(Class<?> cls) {
-        if (cls.equals(String.class))
+        if (cls == String.class)
             return STRING;
-        else if (cls.equals(Integer.class) || cls.equals(Integer.TYPE))
+        else if (cls == Long.class || cls == Long.TYPE)
+            return LONG;
+        else if (cls == Integer.class || cls == Integer.TYPE)
             return INTEGER;
-        else if (cls.equals(Double.class) || cls.equals(Double.TYPE))
+        else if (cls == Double.class || cls == Double.TYPE)
             return DOUBLE;
-        else if (cls.equals(Boolean.class) || cls.equals(Boolean.TYPE))
+        else if (cls == Boolean.class || cls == Boolean.TYPE)
             return BOOLEAN;
         else if (Date.class.isAssignableFrom(cls))
             return DATETIME;
         else if (Number.class.isAssignableFrom(cls))
             return DOUBLE;
-        else if (cls.isArray() && cls.getComponentType().equals(Byte.TYPE))
+        else if (cls.isArray() && cls.getComponentType() == Byte.TYPE)
             return BINARY;
         else if (cls.isArray() || cls.isAssignableFrom(Collection.class))
             return ARRAY;
@@ -74,11 +77,6 @@ public enum TwistDataType
     //
     // Implementation
     //
-    
-    /**
-     * Private constructor for data types.
-     * @param cls
-     */
     TwistDataType(Class<?> cls) {
         _valueClass = cls;
     }

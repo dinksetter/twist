@@ -1,13 +1,20 @@
 package com.inksetter.twist.parser;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import com.inksetter.twist.expression.*;
 import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.exec.CatchBlock;
-import com.inksetter.twist.exec.StatementSequence;
 import com.inksetter.twist.exec.ExecutableStatement;
+import com.inksetter.twist.exec.StatementSequence;
+import com.inksetter.twist.expression.DoubleLiteral;
+import com.inksetter.twist.expression.ElementExpression;
+import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.expression.FunctionExpression;
+import com.inksetter.twist.expression.IntegerLiteral;
+import com.inksetter.twist.expression.LiteralExpression;
+import com.inksetter.twist.expression.MemberExpression;
+import com.inksetter.twist.expression.MethodCallExpression;
+import com.inksetter.twist.expression.ReferenceExpression;
+import com.inksetter.twist.expression.StringLiteral;
+import com.inksetter.twist.expression.TernaryExpression;
 import com.inksetter.twist.expression.operators.AndExpression;
 import com.inksetter.twist.expression.operators.NotExpression;
 import com.inksetter.twist.expression.operators.OrExpression;
@@ -25,6 +32,10 @@ import com.inksetter.twist.expression.operators.compare.LikeExpression;
 import com.inksetter.twist.expression.operators.compare.NotEqualsExpression;
 import com.inksetter.twist.expression.operators.compare.NotLikeExpression;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The core command parser for Twist command syntax.  This parser reads string input
  * and produces an executable CommandSequence tree.
@@ -40,7 +51,7 @@ public class TwistParser {
         
         StatementSequence seq = buildSequence();
         
-        if (_scan.tokenType() != TwistTokenType.EOF) {
+        if (_scan.tokenType() != TwistTokenType.END) {
             throw new TwistParseException(_scan.getLine() + 1, _scan.getLinePos() + 1, "Unexpected token: " + _scan.current());
         }
 
@@ -63,7 +74,7 @@ public class TwistParser {
 
             // Special case -- if someone ends a command sequence with a semicolon, check for reasonable
             // end-of-sequence characters.
-            if (_scan.tokenType() == TwistTokenType.CLOSE_BRACE || _scan.tokenType() == TwistTokenType.EOF) {
+            if (_scan.tokenType() == TwistTokenType.CLOSE_BRACE || _scan.tokenType() == TwistTokenType.END) {
                 break;
             }
 
@@ -124,7 +135,7 @@ public class TwistParser {
                 stmt.setSubSequence(buildSubSequence());
             }
             else {
-                if (_scan.tokenType() == TwistTokenType.VARWORD) {
+                if (_scan.tokenType() == TwistTokenType.IDENTIFIER) {
                     String identifier = getIdentifier("NAME");
                     TwistLexer.TwistToken save = _scan.current();
                     _scan.next();
@@ -347,12 +358,18 @@ public class TwistParser {
         while (_scan.tokenType() == TwistTokenType.DOT || _scan.tokenType() == TwistTokenType.OPEN_BRACKET) {
             if (_scan.tokenType() == TwistTokenType.DOT) {
                 _scan.next();
-                if (_scan.tokenType() != TwistTokenType.VARWORD) {
+                if (_scan.tokenType() != TwistTokenType.IDENTIFIER) {
                     throw parseException("identifier");
                 }
                 String identifier = _scan.current().getValue();
                 _scan.next();
-                expr = new MemberExpression(identifier, expr);
+                if (_scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+                    List<Expression> methodArgs = getFunctionArgs();
+                    expr = new MethodCallExpression(expr, identifier, methodArgs);
+                }
+                else {
+                    expr = new MemberExpression(expr, identifier);
+                }
             }
             else {
                 _scan.next();
@@ -373,7 +390,7 @@ public class TwistParser {
         case BANG:
             _scan.next();
             return new NotExpression(buildExpressionValue());
-        case VARWORD:
+        case IDENTIFIER:
             String identifier = _scan.current().getValue();
             _scan.next();
             if (_scan.tokenType() == TwistTokenType.OPEN_PAREN) {
@@ -408,7 +425,7 @@ public class TwistParser {
                         numericValue.indexOf('e') != -1 ||
                         numericValue.indexOf('E') != -1) {
                     // We've got a floating point value on our hands.
-                    numericExpression = new LiteralExpression(TwistDataType.DOUBLE, Double.valueOf(numericValue));
+                    numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
                 }
                 else {
                     // Deal with large numeric values.
@@ -416,10 +433,10 @@ public class TwistParser {
                     
                     if (tmpValue.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0 ||
                         tmpValue.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
-                        numericExpression = new LiteralExpression(TwistDataType.DOUBLE, tmpValue.doubleValue());
+                        numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
                     }
                     else {
-                        numericExpression = new LiteralExpression(TwistDataType.INTEGER, tmpValue.intValue());
+                        numericExpression = new IntegerLiteral(tmpValue.intValue());
                     }
                 }
             }
@@ -436,7 +453,7 @@ public class TwistParser {
         case DOUBLE_STRING:
             String unquoted = _scan.current().getValue();
             _scan.next();
-            return new LiteralExpression(TwistDataType.STRING, dequote(unquoted));
+            return new StringLiteral(dequote(unquoted));
             
         case NULL_TOKEN:
             _scan.next();
@@ -457,6 +474,12 @@ public class TwistParser {
     
     protected Expression buildFunctionExpression(String functionName) throws TwistParseException {
         // This method only gets called if parentheses have been seen
+        List<Expression> functionArgs = getFunctionArgs();
+
+        return FunctionExpression.chooseFunction(functionName, functionArgs);
+    }
+
+    private List<Expression> getFunctionArgs() throws TwistParseException {
         List<Expression> functionArgs = new ArrayList<>();
 
         if (_scan.tokenType() == TwistTokenType.OPEN_PAREN) {
@@ -472,14 +495,9 @@ public class TwistParser {
             }
             _scan.next();
         }
-        FunctionExpression expr = FunctionExpression.getBuiltInFunction(functionName, functionArgs);
-        
-        if (expr == null) {
-            expr = FunctionExpression.getServiceFunction(functionName, functionArgs);
-        }
-        return expr;
+        return functionArgs;
     }
-    
+
     protected String dequote(String orig) {
         char quotechar = orig.charAt(0);
         int startpos = 1;
@@ -504,7 +522,7 @@ public class TwistParser {
     }
 
     protected String getIdentifier(String expect) throws TwistParseException {
-        if (_scan.tokenType() == TwistTokenType.VARWORD) {
+        if (_scan.tokenType() == TwistTokenType.IDENTIFIER) {
             return _scan.current().getValue();
         }
 

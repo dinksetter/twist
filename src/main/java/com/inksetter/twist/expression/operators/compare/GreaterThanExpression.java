@@ -1,7 +1,6 @@
 package com.inksetter.twist.expression.operators.compare;
 
-import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.TwistValue;
+import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.expression.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 
@@ -9,13 +8,14 @@ public class GreaterThanExpression extends AbsractOperExpression {
     public GreaterThanExpression(Expression left, Expression right) {
         super(left, right);
     }
-    
-    protected TwistValue doOper(TwistValue left, TwistValue right) {
-        return new TwistValue(TwistDataType.BOOLEAN, compare(left, right));
+
+    @Override
+    protected Boolean doOper(Object left, Object right) {
+        return compare(left, right);
     }
     
-    private boolean compare(TwistValue left, TwistValue right) {
-        return (left.compareTo(right) > 0);
+    private boolean compare(Object left, Object right) {
+        return ValueUtils.compare(left, right) > 0;
     }
     
     @Override

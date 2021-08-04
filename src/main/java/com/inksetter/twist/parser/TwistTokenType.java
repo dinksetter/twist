@@ -1,8 +1,9 @@
 package com.inksetter.twist.parser;
 
 public enum TwistTokenType {
-    EOF,
-    VARWORD,
+    END,
+    COMMENT,
+    IDENTIFIER,
     NUMBER,
     DOUBLE_STRING,
     SINGLE_STRING,
@@ -11,18 +12,20 @@ public enum TwistTokenType {
     DOT,
     OPEN_PAREN, CLOSE_PAREN,
     OPEN_BRACE, CLOSE_BRACE,
-    OPEN_BRACKET, CLOSE_BRACKET,
-    EQ, NE, LT, GT, LE, GE, LIKE,
-    AND, OR, NOT,
-    NULL_TOKEN,
-    BANG,
+    OPEN_BRACKET, CLOSE_BRACKET, COMMA,
+
+    // operators
+    EQ, NE, LT, GT, LE, GE,
+    BANG, AND, OR,
     STAR, PLUS, MINUS, SLASH, PERCENT,
+    NOT, LIKE, QUESTION, COLON,
+
+    // reserved words
+    NULL_TOKEN,
     IF,
     ELSE,
     TRY,
     CATCH,
     FINALLY,
     TRUE, FALSE,
-    COMMA,
-    COMMENT, QUESTION, COLON
 }
