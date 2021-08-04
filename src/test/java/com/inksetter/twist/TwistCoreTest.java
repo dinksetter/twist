@@ -95,6 +95,20 @@ public class TwistCoreTest {
         Assert.assertEquals("defg", context.getVariable("ccc"));
     }
 
+    @Test
+    public void testJavaMethodsWithInvalidArgs() throws TwistException {
+        MyContext context = new MyContext();
+        context.setVariable("foo", "abcd");
+
+        try {
+            new TwistParser("aaa = foo.substring(2,'900');").parse().execute(context, false);
+            Assert.fail("Expected exception");
+        }
+        catch (TwistException e) {
+            // Normal
+        }
+    }
+
     private static class MyContext extends AbstractContext {
 
         private final List<String> _functionCalls = new ArrayList<>();

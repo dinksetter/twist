@@ -7,20 +7,16 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.MethodDescriptor;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class MethodCallExpression implements Expression {
 
-    public MethodCallExpression(Expression target, String memberName, List<Expression> methodArgs) {
+    public MethodCallExpression(Expression target, String methodName, List<Expression> methodArgs) {
         _target = target;
-        _memberName = memberName;
+        _methodName = methodName;
         _methodArgs = methodArgs;
     }
 
@@ -31,12 +27,11 @@ public class MethodCallExpression implements Expression {
             throw new NullValueException(_target.toString());
         }
 
-        List<Object> list = new ArrayList<>();
-        for (Expression a : _methodArgs) {
-            Object evaluate = a.evaluate(ctx);
-            list.add(evaluate);
+        Object[] argValues = new Object[_methodArgs.size()];
+        for (int i = 0; i < _methodArgs.size(); i++) {
+            Expression a = _methodArgs.get(i);
+            argValues[i] = a.evaluate(ctx);
         }
-        Object[] argValues = list.toArray();
 
         try {
 
@@ -44,14 +39,20 @@ public class MethodCallExpression implements Expression {
             for (MethodDescriptor desc : info.getMethodDescriptors()) {
                 String methodName = desc.getName();
 
-                if (_memberName.equals(desc.getName())) {
+                if (_methodName.equals(desc.getName())) {
                     Method method = desc.getMethod();
-                    if (method.getParameterCount() == _methodArgs.size()) {
-                        return method.invoke(obj, argValues);
+                    if (method.getParameterCount() == argValues.length) {
+                        try {
+                            return method.invoke(obj, argValues);
+                        }
+                        catch (IllegalArgumentException e) {
+                            throw new TwistException("Unable to call method " + _methodName + ":" + e.getMessage(), e);
+                        }
                     }
                 }
             }
-            throw new UnrecognizedMethodException(_memberName);
+
+            throw new UnrecognizedMethodException(_methodName);
         } catch (IntrospectionException e) {
             throw new TwistException("Unable to find properties of " + obj, e);
         } catch (InvocationTargetException | IllegalAccessException e) {
@@ -62,10 +63,10 @@ public class MethodCallExpression implements Expression {
     // @see java.lang.Object#toString()
     @Override
     public String toString() {
-        return _target + "." + _memberName;
+        return _target + "." + _methodName;
     }
 
     private final Expression _target;
-    private final String _memberName;
+    private final String _methodName;
     private final List<Expression> _methodArgs;
 }
