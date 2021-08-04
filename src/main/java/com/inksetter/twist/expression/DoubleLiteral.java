@@ -8,7 +8,7 @@ public class DoubleLiteral implements Expression {
         _value = value;
     }
 
-    public Double evaluate(ExecContext ctx) throws TwistException {
+    public Double evaluate(ExecContext ctx) {
         return _value;
     }
 

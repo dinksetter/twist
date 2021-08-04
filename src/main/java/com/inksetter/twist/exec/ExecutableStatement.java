@@ -33,6 +33,8 @@ public class ExecutableStatement implements Expression {
         _expression = expression;
     }
 
+    public Expression getExpression() { return _expression; }
+
     public void setCatchBlocks(List<CatchBlock> catchBlocks) {
         _catchBlocks = catchBlocks;
     }

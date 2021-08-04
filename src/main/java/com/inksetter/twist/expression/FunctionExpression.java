@@ -33,18 +33,12 @@ import java.util.Map;
  */
 public class FunctionExpression implements Expression {
     
-    public static FunctionExpression getBuiltInFunction(String name, List<Expression> args) {
-        TwistFunction function = _FUNCTIONS.get(name.toLowerCase());
-        if (function != null) {
-            return new FunctionExpression(name, args, function);
+    public static FunctionExpression chooseFunction(String name, List<Expression> args) {
+        TwistFunction function = _BUILTINS.get(name.toLowerCase());
+        if (function == null) {
+            function = new ExternalFunction(name);
         }
-        else {
-            return null;
-        }
-    }
-    
-    public static FunctionExpression getServiceFunction(String name, List<Expression> args) {
-        return new FunctionExpression(name, args, new ExternalFunction(name));
+        return new FunctionExpression(name, args, function);
     }
     
     private FunctionExpression(String name, List<Expression> args, TwistFunction function) {
@@ -82,27 +76,26 @@ public class FunctionExpression implements Expression {
     private final List<Expression> _args;
     private final TwistFunction _function;
     
-    private final static Map<String, TwistFunction> _FUNCTIONS = new HashMap<>();
+    private final static Map<String, TwistFunction> _BUILTINS = new HashMap<>();
     static {
-        _FUNCTIONS.put("date", new DateFunction());
-        _FUNCTIONS.put("string", new StringFunction());
-        _FUNCTIONS.put("int", new IntFunction());
-        _FUNCTIONS.put("float", new DoubleFunction());
-        _FUNCTIONS.put("upper", new UpperFunction());
-        _FUNCTIONS.put("lower", new LowerFunction());
-        _FUNCTIONS.put("trim", new TrimFunction());
-        _FUNCTIONS.put("rtrim", new TrimFunction());
-        _FUNCTIONS.put("len", new LengthFunction());
-        _FUNCTIONS.put("length", new LengthFunction());
-        _FUNCTIONS.put("sprintf", new SprintfFunction());
-        _FUNCTIONS.put("ifnull", new IfNullFunction());
-        _FUNCTIONS.put("min", new MinFunction());
-        _FUNCTIONS.put("max", new MaxFunction());
-        _FUNCTIONS.put("substr", new SubstrFunction());
-        _FUNCTIONS.put("instr", new IndexOfFunction());
-        _FUNCTIONS.put("b64decode", new Base64DecodeFunction());
-        _FUNCTIONS.put("b64encode", new Base64EncodeFunction());
-        _FUNCTIONS.put("now", new NowFunction());
-        _FUNCTIONS.put("type", new TypeFunction());
+        _BUILTINS.put("date", new DateFunction());
+        _BUILTINS.put("string", new StringFunction());
+        _BUILTINS.put("int", new IntFunction());
+        _BUILTINS.put("double", new DoubleFunction());
+        _BUILTINS.put("upper", new UpperFunction());
+        _BUILTINS.put("lower", new LowerFunction());
+        _BUILTINS.put("trim", new TrimFunction());
+        _BUILTINS.put("len", new LengthFunction());
+        _BUILTINS.put("length", new LengthFunction());
+        _BUILTINS.put("sprintf", new SprintfFunction());
+        _BUILTINS.put("ifnull", new IfNullFunction());
+        _BUILTINS.put("min", new MinFunction());
+        _BUILTINS.put("max", new MaxFunction());
+        _BUILTINS.put("substr", new SubstrFunction());
+        _BUILTINS.put("instr", new IndexOfFunction());
+        _BUILTINS.put("b64decode", new Base64DecodeFunction());
+        _BUILTINS.put("b64encode", new Base64EncodeFunction());
+        _BUILTINS.put("now", new NowFunction());
+        _BUILTINS.put("type", new TypeFunction());
     }
 }

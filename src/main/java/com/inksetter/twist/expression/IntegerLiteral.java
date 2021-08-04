@@ -8,7 +8,7 @@ public class IntegerLiteral implements Expression {
         _value = value;
     }
 
-    public Integer evaluate(ExecContext ctx) throws TwistException {
+    public Integer evaluate(ExecContext ctx) {
         return _value;
     }
 

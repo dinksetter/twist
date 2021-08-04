@@ -9,7 +9,7 @@ import com.inksetter.twist.ValueUtils;
 public class StringFunction extends SingleArgFunction {
 
     @Override
-    protected String invoke(Object argValue) throws TwistException {
+    protected String invoke(Object argValue) {
         return ValueUtils.asString(argValue);
     }
 }

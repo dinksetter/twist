@@ -14,7 +14,7 @@ public class LiteralExpression implements Expression {
         _value = value;
     }
     
-    public Object evaluate(ExecContext ctx) throws TwistException {
+    public Object evaluate(ExecContext ctx) {
         return _value;
     }
     

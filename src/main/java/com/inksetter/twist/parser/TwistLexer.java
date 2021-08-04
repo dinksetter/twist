@@ -154,7 +154,7 @@ public class TwistLexer {
         do {
             token = _nextToken();
             tokens.add(token);
-        } while (token.getType() != TwistTokenType.EOF);
+        } while (token.getType() != TwistTokenType.END);
         
         return tokens.toArray(new TwistToken[tokens.size()]);
     }
@@ -191,8 +191,7 @@ public class TwistLexer {
     
     /**
      * Return the next token.
-     * @return a TwistToken object representing the next token in the SQL
-     * statement. When the end of the statement is reached, a token of type
+     * @return a TwistToken object representing the next token in the script. When the end of the statement is reached, a token of type
      * <code>TwistTokenType.END</code> is returned.  Subsequent calls, after the
      * end token is returned will also return an end token.
      * @throws TwistLexException if there was a problem parsing the SQL
@@ -205,7 +204,7 @@ public class TwistLexer {
         
         // If we're done, mark the end of the statement
         if (!_hasNext()) {
-            return new TwistToken(TwistTokenType.EOF, _begin, _pos);
+            return new TwistToken(TwistTokenType.END, _begin, _pos);
         }
         
         // We need to keep track of where this token's significant text began
@@ -380,26 +379,16 @@ public class TwistLexer {
     }
     
     private TwistToken _readIdentifier() throws TwistLexException {
-        return (_readIdentifierAs(null));
-    }
-    
-    private TwistToken _readIdentifierAs(TwistTokenType type) throws TwistLexException {
         while (_hasNext() && _isValidIdentifier(_peekChar())) {
              _nextChar();
         }
         
         String word = _in.subSequence(_startOfToken, _pos).toString();
-        TwistTokenType wordType;
-        if (type != null) {
-            wordType = type;
+        TwistTokenType wordType = _RESERVED.get(word.toLowerCase());
+        if (wordType == null) {
+            wordType = TwistTokenType.IDENTIFIER;
         }
-        else {
-            wordType = _RESERVED.get(word.toLowerCase());
-            if (wordType == null) {
-                wordType = TwistTokenType.VARWORD;
-            }
-        }
-        
+
         return new TwistToken(wordType, _begin, _startOfToken);
     }
     

@@ -9,7 +9,7 @@ import com.inksetter.twist.ValueUtils;
 public class UpperFunction  extends SingleArgFunction {
 
     @Override
-    protected String invoke(Object argValue) throws TwistException {
+    protected String invoke(Object argValue) {
         String strValue = ValueUtils.asString(argValue);
 
         return strValue == null ? null : strValue.toUpperCase();

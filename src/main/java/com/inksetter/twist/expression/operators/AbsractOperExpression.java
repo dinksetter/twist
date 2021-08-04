@@ -27,7 +27,11 @@ public abstract class AbsractOperExpression implements Expression {
     }
     
     protected abstract Object doOper(Object left, Object right) throws TwistException;
-    
+
+    Expression getLeft() { return _left; }
+
+    Expression getRight() { return _right; }
+
     private final Expression _left;
     private final Expression _right;
 }

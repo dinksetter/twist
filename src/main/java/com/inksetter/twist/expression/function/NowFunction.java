@@ -19,7 +19,7 @@ public class NowFunction extends BaseFunction {
     }
 
     @Override
-    protected Date invoke(ExecContext ctx, List<Object> args) throws TwistException {
+    protected Date invoke(ExecContext ctx, List<Object> args) {
         return new Date();
     }
 }

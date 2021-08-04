@@ -8,7 +8,7 @@ public class ReferenceExpression implements Expression {
         _name = name;
     }
     
-    public Object evaluate(ExecContext ctx) throws TwistException {
+    public Object evaluate(ExecContext ctx) {
         return ctx.getVariable(_name);
     }
     

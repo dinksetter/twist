@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class MinFunction extends BaseFunction {
     @Override
-    protected Object invoke(ExecContext ctx, List<Object> args) throws TwistException {
+    protected Object invoke(ExecContext ctx, List<Object> args) {
         Object minValue = null;
         
         for (Object a : args) {

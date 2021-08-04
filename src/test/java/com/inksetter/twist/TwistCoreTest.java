@@ -72,12 +72,28 @@ public class TwistCoreTest {
 
         new TwistParser("a = bar.thing1; b = bar.thing2").parse().execute(context, false);
         new TwistParser("c = foo.a; d = foo.b").parse().execute(context, false);
-        System.out.println(context.getVariable("a"));
-        System.out.println(context.getVariable("b"));
-        System.out.println(context.getVariable("c"));
-        System.out.println(context.getVariable("d"));
+
+        Assert.assertEquals("aaaa", context.getVariable("a"));
+        Assert.assertEquals("xxxx", context.getVariable("b"));
+        Assert.assertEquals("a-value", context.getVariable("c"));
+        Assert.assertEquals(3.14, context.getVariable("d"));
     }
 
+    @Test
+    public void testJavaMethods() throws TwistException {
+        MyContext context = new MyContext();
+        Map<String, Object> testMap = new HashMap<>();
+
+        testMap.put("a", "abcdefg");
+
+        context.setVariable("foo", testMap);
+
+        new TwistParser("aaa = foo.a; bbb = foo.a.substring(2,5); ccc = aaa.substring(3)").parse().execute(context, false);
+
+        Assert.assertEquals("abcdefg", context.getVariable("aaa"));
+        Assert.assertEquals("cde", context.getVariable("bbb"));
+        Assert.assertEquals("defg", context.getVariable("ccc"));
+    }
 
     private static class MyContext extends AbstractContext {
 

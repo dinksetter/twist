@@ -12,7 +12,7 @@ import java.util.List;
 public class MaxFunction extends BaseFunction {
 
     @Override
-    protected Object invoke(ExecContext ctx, List<Object> args) throws TwistException {
+    protected Object invoke(ExecContext ctx, List<Object> args) {
         Object maxValue = null;
 
         for (Object a : args) {

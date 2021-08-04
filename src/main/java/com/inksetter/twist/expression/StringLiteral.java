@@ -8,7 +8,7 @@ public class StringLiteral implements Expression {
         _value = value;
     }
 
-    public String evaluate(ExecContext ctx) throws TwistException {
+    public String evaluate(ExecContext ctx) {
         return _value;
     }
 
