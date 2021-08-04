@@ -1,5 +1,6 @@
 package com.inksetter.twist.expression.function;
 
+import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
 
 import java.util.Date;
@@ -10,7 +11,7 @@ import java.util.Date;
 public class DateFunction extends SingleArgFunction {
 
     @Override
-    protected Date invoke(Object arg) {
+    protected Date invoke(Object arg) throws TwistException {
         return ValueUtils.asDate(arg);
     }
 }

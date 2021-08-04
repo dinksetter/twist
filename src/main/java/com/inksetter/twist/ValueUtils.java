@@ -1,5 +1,7 @@
 package com.inksetter.twist;
 
+import com.inksetter.twist.expression.TypeMismatchException;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.Instant;
@@ -114,7 +116,7 @@ public class ValueUtils {
         return 0.0;
     }
     
-    public static Date asDate(Object value) {
+    public static Date asDate(Object value) throws TwistException {
         if (isNull(value))  return null;
         
         if (value instanceof Date) {
@@ -125,34 +127,12 @@ public class ValueUtils {
             return parseDate((String)value);
         }
         
-        return null; // TODO throw type cast exception
+        throw new TypeMismatchException("cannot evaluate " + value + "as date");
     }
     
     public static boolean isNull(Object value) {
         return value == null ||
                 (value instanceof String && ((String) value).isEmpty());
-    }
-    
-    /**
-     * Returns the value as an object of the passed type. If the type conversion
-     * cannot occur, <code>null</code> is returned.  Otherwise, the standard type
-     * conversion occurs.
-     * @return
-     */
-    public static Object asType(Object value, TwistDataType type) {
-            switch (type) {
-            case STRING:
-                return asString(value);
-            case BOOLEAN:
-                return asBoolean(value);
-            case DOUBLE:
-                return asDouble(value);
-            case INTEGER:
-                return asInt(value);
-            case DATETIME:
-                return asDate(value);
-            }
-        return null;
     }
     
     public static String formatDate(Date date) {
@@ -170,9 +150,6 @@ public class ValueUtils {
 
     /**
      * works like a compare function in Comparable.
-     * @param left
-     * @param right
-     * @return
      */
     public static int compare(Object left, Object right) {
 
