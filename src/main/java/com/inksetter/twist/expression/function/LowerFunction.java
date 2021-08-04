@@ -1,12 +1,7 @@
 package com.inksetter.twist.expression.function;
 
-import java.util.List;
-import java.util.Locale;
-
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.exec.ExecContext;
 
 /**
  * Returns the string argument, folded to lower case.

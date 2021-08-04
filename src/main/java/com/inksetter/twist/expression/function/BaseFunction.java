@@ -1,11 +1,11 @@
 package com.inksetter.twist.expression.function;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.expression.Expression;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An abstract base class that evaluates all argument expressions before calling the invoke method.

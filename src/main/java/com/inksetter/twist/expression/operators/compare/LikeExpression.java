@@ -1,6 +1,5 @@
 package com.inksetter.twist.expression.operators.compare;
 
-import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.expression.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 

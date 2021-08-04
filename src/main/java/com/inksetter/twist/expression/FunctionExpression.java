@@ -1,32 +1,31 @@
 package com.inksetter.twist.expression;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.expression.function.Base64DecodeFunction;
 import com.inksetter.twist.expression.function.Base64EncodeFunction;
-import com.inksetter.twist.expression.function.ExternalFunction;
 import com.inksetter.twist.expression.function.DateFunction;
 import com.inksetter.twist.expression.function.DoubleFunction;
+import com.inksetter.twist.expression.function.ExternalFunction;
+import com.inksetter.twist.expression.function.IfNullFunction;
 import com.inksetter.twist.expression.function.IndexOfFunction;
 import com.inksetter.twist.expression.function.IntFunction;
 import com.inksetter.twist.expression.function.LengthFunction;
 import com.inksetter.twist.expression.function.LowerFunction;
 import com.inksetter.twist.expression.function.MaxFunction;
 import com.inksetter.twist.expression.function.MinFunction;
-import com.inksetter.twist.expression.function.TwistFunction;
-import com.inksetter.twist.expression.function.IfNullFunction;
+import com.inksetter.twist.expression.function.NowFunction;
 import com.inksetter.twist.expression.function.SprintfFunction;
 import com.inksetter.twist.expression.function.StringFunction;
 import com.inksetter.twist.expression.function.SubstrFunction;
-import com.inksetter.twist.expression.function.NowFunction;
-
 import com.inksetter.twist.expression.function.TrimFunction;
+import com.inksetter.twist.expression.function.TwistFunction;
 import com.inksetter.twist.expression.function.TypeFunction;
 import com.inksetter.twist.expression.function.UpperFunction;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An expression that represents a function. Functions are evaluated

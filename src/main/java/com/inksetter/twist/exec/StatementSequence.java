@@ -1,11 +1,11 @@
 package com.inksetter.twist.exec;
 
+import com.inksetter.twist.TwistException;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import com.inksetter.twist.TwistException;
 
 public class StatementSequence implements Serializable {
 

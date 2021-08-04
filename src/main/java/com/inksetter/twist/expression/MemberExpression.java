@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
-import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.TwistException;
+import com.inksetter.twist.exec.ExecContext;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -30,6 +30,7 @@ public class MemberExpression implements Expression {
             return ((Map<?, ?>) obj).get(_memberName);
         }
 
+        // option 2 - bean introspection
         try {
             BeanInfo info = Introspector.getBeanInfo(obj.getClass(), Object.class, Introspector.IGNORE_ALL_BEANINFO);
             PropertyDescriptor descriptor = Arrays.stream(info.getPropertyDescriptors()).filter(pd -> pd.getName().equals(_memberName)).findFirst().orElse(null);

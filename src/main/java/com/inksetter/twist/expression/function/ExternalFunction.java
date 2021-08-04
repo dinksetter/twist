@@ -1,11 +1,11 @@
 package com.inksetter.twist.expression.function;
 
+import com.inksetter.twist.TwistException;
+import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.expression.Expression;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.inksetter.twist.TwistException;
-import com.inksetter.twist.expression.Expression;
-import com.inksetter.twist.exec.ExecContext;
 
 /**
  * Executes a function using the external function feature of the execution

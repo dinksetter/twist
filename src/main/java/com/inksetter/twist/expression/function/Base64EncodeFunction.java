@@ -1,13 +1,10 @@
 package com.inksetter.twist.expression.function;
 
-import java.util.Base64;
-import java.util.List;
-
-import com.inksetter.twist.TwistException;
 import com.inksetter.twist.TwistDataType;
+import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.exec.ExecContext;
-import com.inksetter.twist.expression.Expression;
+
+import java.util.Base64;
 
 /**
  * Encodes a binary field (byte array) into a base-64 encoded string value.

@@ -1,17 +1,17 @@
 package com.inksetter.twist.expression.operators.arith;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-
 import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.expression.Expression;
 import com.inksetter.twist.expression.TypeMismatchException;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 public class MinusExpression extends AbsractOperExpression {
     public MinusExpression(Expression left, Expression right) {

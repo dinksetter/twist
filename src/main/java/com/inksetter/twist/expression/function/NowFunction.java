@@ -1,12 +1,11 @@
 package com.inksetter.twist.expression.function;
 
-import java.util.Date;
-import java.util.List;
-
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.expression.Expression;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * Returns the current date.

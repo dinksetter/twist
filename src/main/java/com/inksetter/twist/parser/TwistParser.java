@@ -1,13 +1,20 @@
 package com.inksetter.twist.parser;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import com.inksetter.twist.expression.*;
 import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.exec.CatchBlock;
-import com.inksetter.twist.exec.StatementSequence;
 import com.inksetter.twist.exec.ExecutableStatement;
+import com.inksetter.twist.exec.StatementSequence;
+import com.inksetter.twist.expression.DoubleLiteral;
+import com.inksetter.twist.expression.ElementExpression;
+import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.expression.FunctionExpression;
+import com.inksetter.twist.expression.IntegerLiteral;
+import com.inksetter.twist.expression.LiteralExpression;
+import com.inksetter.twist.expression.MemberExpression;
+import com.inksetter.twist.expression.MethodCallExpression;
+import com.inksetter.twist.expression.ReferenceExpression;
+import com.inksetter.twist.expression.StringLiteral;
+import com.inksetter.twist.expression.TernaryExpression;
 import com.inksetter.twist.expression.operators.AndExpression;
 import com.inksetter.twist.expression.operators.NotExpression;
 import com.inksetter.twist.expression.operators.OrExpression;
@@ -24,6 +31,10 @@ import com.inksetter.twist.expression.operators.compare.LessThanOrEqualsExpressi
 import com.inksetter.twist.expression.operators.compare.LikeExpression;
 import com.inksetter.twist.expression.operators.compare.NotEqualsExpression;
 import com.inksetter.twist.expression.operators.compare.NotLikeExpression;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The core command parser for Twist command syntax.  This parser reads string input

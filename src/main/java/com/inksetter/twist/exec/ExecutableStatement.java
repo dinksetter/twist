@@ -1,11 +1,11 @@
 package com.inksetter.twist.exec;
 
-import java.util.List;
-
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.expression.Expression;
 import org.apache.log4j.Logger;
+
+import java.util.List;
 
 public class ExecutableStatement implements Expression {
     

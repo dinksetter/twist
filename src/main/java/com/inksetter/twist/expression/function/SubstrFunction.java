@@ -1,10 +1,10 @@
 package com.inksetter.twist.expression.function;
 
-import java.util.List;
-
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.exec.ExecContext;
+
+import java.util.List;
 
 /**
  * Returns a new string that is a substring of the string argument.

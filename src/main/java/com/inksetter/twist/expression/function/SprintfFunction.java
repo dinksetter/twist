@@ -1,11 +1,10 @@
 package com.inksetter.twist.expression.function;
 
-import java.util.List;
-
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.exec.ExecContext;
+
+import java.util.List;
 
 /**
  * Calls the equivalent of the C sprintf function.  This method actually
