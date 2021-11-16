@@ -10,6 +10,7 @@ import com.inksetter.twist.expression.function.ExternalFunction;
 import com.inksetter.twist.expression.function.IfNullFunction;
 import com.inksetter.twist.expression.function.IndexOfFunction;
 import com.inksetter.twist.expression.function.IntFunction;
+import com.inksetter.twist.expression.function.JsonFunction;
 import com.inksetter.twist.expression.function.LengthFunction;
 import com.inksetter.twist.expression.function.LowerFunction;
 import com.inksetter.twist.expression.function.MaxFunction;
@@ -92,6 +93,7 @@ public class FunctionExpression implements Expression {
         _BUILTINS.put("min", new MinFunction());
         _BUILTINS.put("max", new MaxFunction());
         _BUILTINS.put("substr", new SubstrFunction());
+        _BUILTINS.put("json", new JsonFunction());
         _BUILTINS.put("instr", new IndexOfFunction());
         _BUILTINS.put("b64decode", new Base64DecodeFunction());
         _BUILTINS.put("b64encode", new Base64EncodeFunction());

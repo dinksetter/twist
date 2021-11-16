@@ -109,6 +109,15 @@ public class TwistCoreTest {
         }
     }
 
+    @Test
+    public void testJson() throws TwistException {
+        MyContext context = new MyContext();
+        context.setVariable("foo", "{\"a\": 900}");
+
+            new TwistParser("aaa = json(foo); bbb = aaa.a;").parse().execute(context, false);
+            Assert.assertEquals(900, context.getVariable("bbb"));
+    }
+
     private static class MyContext extends AbstractContext {
 
         private final List<String> _functionCalls = new ArrayList<>();
