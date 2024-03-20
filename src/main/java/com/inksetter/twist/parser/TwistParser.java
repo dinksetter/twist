@@ -130,6 +130,9 @@ public class TwistParser {
                 stmt.setFinallyBlock(buildSubSequence());
             }
         }
+        else if (_scan.tokenType() == TwistTokenType.FOR) {
+            stmt.setForSequence(buildForSequence());
+        }
         else {
             if (_scan.tokenType() == TwistTokenType.OPEN_BRACE) {
                 stmt.setSubSequence(buildSubSequence());

@@ -24,6 +24,7 @@ public enum TwistTokenType {
     NULL_TOKEN,
     IF,
     ELSE,
+    FOR,
     TRY,
     CATCH,
     FINALLY,

@@ -461,6 +461,7 @@ public class TwistLexer {
         _RESERVED.put("else", TwistTokenType.ELSE);
         _RESERVED.put("not", TwistTokenType.NOT);
         _RESERVED.put("like", TwistTokenType.LIKE);
+        _RESERVED.put("for", TwistTokenType.FOR);
         _RESERVED.put("try", TwistTokenType.TRY);
         _RESERVED.put("true", TwistTokenType.TRUE);
         _RESERVED.put("false", TwistTokenType.FALSE);
