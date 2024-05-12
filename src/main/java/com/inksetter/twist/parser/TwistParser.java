@@ -23,14 +23,7 @@ import com.inksetter.twist.expression.operators.arith.MinusExpression;
 import com.inksetter.twist.expression.operators.arith.ModExpression;
 import com.inksetter.twist.expression.operators.arith.MultiplyExpression;
 import com.inksetter.twist.expression.operators.arith.PlusExpression;
-import com.inksetter.twist.expression.operators.compare.EqualsExpression;
-import com.inksetter.twist.expression.operators.compare.GreaterThanExpression;
-import com.inksetter.twist.expression.operators.compare.GreaterThanOrEqualsExpression;
-import com.inksetter.twist.expression.operators.compare.LessThanExpression;
-import com.inksetter.twist.expression.operators.compare.LessThanOrEqualsExpression;
-import com.inksetter.twist.expression.operators.compare.LikeExpression;
-import com.inksetter.twist.expression.operators.compare.NotEqualsExpression;
-import com.inksetter.twist.expression.operators.compare.NotLikeExpression;
+import com.inksetter.twist.expression.operators.compare.*;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -56,6 +49,11 @@ public class TwistParser {
         }
 
         return seq;
+    }
+
+    public Expression parseExpression() throws TwistParseException{
+        _scan.next();
+        return buildFullExpression();
     }
     
     //
@@ -139,6 +137,12 @@ public class TwistParser {
                     String identifier = getIdentifier("NAME");
                     TwistLexer.TwistToken save = _scan.current();
                     _scan.next();
+                    while (_scan.tokenType() == TwistTokenType.DOT) {
+                        _scan.next();
+                        if (_scan.tokenType() == TwistTokenType.IDENTIFIER) {
+
+                        }
+                    }
 
                     if (_scan.tokenType() == TwistTokenType.ASSIGNMENT) {
                         // Assignment
@@ -272,6 +276,10 @@ public class TwistParser {
         else if (oper == TwistTokenType.LIKE) {
             _scan.next();
             expr  = new LikeExpression(expr, buildExpressionTerm());
+        }
+        else if (oper == TwistTokenType.MATCH) {
+            _scan.next();
+            expr  = new RegexMatchExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.NOT) {
             _scan.next();

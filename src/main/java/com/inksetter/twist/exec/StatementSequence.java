@@ -22,7 +22,7 @@ public class StatementSequence implements Serializable {
         Object lastValue = null;
         try {
             for (ExecutableStatement statement : _statements) {
-                lastValue = statement.evaluate(exec);
+                lastValue = statement.execute(exec);
             }
         }
         finally {

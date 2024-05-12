@@ -54,4 +54,9 @@ public class AbstractContext implements ExecContext {
     public Object invokeExternalFunction(String functionName, List<Object> argValues) {
         return null;
     }
+
+    @Override
+    public void debug(String format, Object... args) {
+        // by default, do nothing
+    }
 }

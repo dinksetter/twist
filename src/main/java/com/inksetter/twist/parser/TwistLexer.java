@@ -292,6 +292,12 @@ public class TwistLexer {
                     _nextChar();
                     return new TwistToken(TwistTokenType.EQ, _begin, _startOfToken);
                 }
+                else if (_hasNext() && _peekChar() == '~') {
+                    // This is to go over the = character
+                    _nextChar();
+                    return new TwistToken(TwistTokenType.MATCH, _begin, _startOfToken);
+                }
+
                 else {
                     return new TwistToken(TwistTokenType.ASSIGNMENT, _begin, _startOfToken);
                 }

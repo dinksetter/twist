@@ -17,4 +17,6 @@ public interface ExecContext {
     boolean lookupExternalFunction(String functionName);
 
     Object invokeExternalFunction(String functionName, List<Object> argValues);
+
+    void debug(String format, Object... args);
 }

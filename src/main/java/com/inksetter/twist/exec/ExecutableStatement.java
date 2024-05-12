@@ -3,11 +3,11 @@ package com.inksetter.twist.exec;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.expression.Expression;
-import org.apache.log4j.Logger;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class ExecutableStatement implements Expression {
+public class ExecutableStatement implements Serializable {
     
     public void setIfTest(Expression ifTest) {
         _ifTest = ifTest;
@@ -43,8 +43,7 @@ public class ExecutableStatement implements Expression {
         _finallyBlock = finallyBlock;
     }
 
-    @Override
-    public Object evaluate(ExecContext exec) throws TwistException {
+    public Object execute(ExecContext exec) throws TwistException {
         return _executeStatement(exec);
     }
 
@@ -98,18 +97,18 @@ public class ExecutableStatement implements Expression {
 
     private Object _executeStatement(ExecContext exec) throws TwistException {
         if (_ifTest != null) {
-            _logger.debug("if (" + _ifTest + ") ... ");
+            exec.debug("if (" + _ifTest + ") ... ");
             Object testValue = _ifTest.evaluate(exec);
             if (ValueUtils.asBoolean(testValue)) {
-                _logger.debug("If-test passed - executing if block");
-                _ifBlock.evaluate(exec);
+                exec.debug("If-test passed - executing if block");
+                _ifBlock.execute(exec);
             }
             else if (_elseBlock != null) {
-                _logger.debug("If-test failed - executing else block");
-                _elseBlock.evaluate(exec);
+                exec.debug("If-test failed - executing else block");
+                _elseBlock.execute(exec);
             }
             else {
-                _logger.debug("If-test failed - no else block to execute");
+                exec.debug("If-test failed - no else block to execute");
             }
 
             // If statements do not have value, just side effects.
@@ -128,7 +127,7 @@ public class ExecutableStatement implements Expression {
                         boolean matches = exceptionClassName.equals(catchBlock.getTypeName());
 
                         if (matches) {
-                            _logger.debug("Catch condition met - executing catch block...");
+                            exec.debug("Catch condition met - executing catch block...");
                             // We execute the catch block, if it exists. If it's a
                             // simple catch expression, then
                             // we return the error results of the exception that got
@@ -144,7 +143,7 @@ public class ExecutableStatement implements Expression {
                             }
                         }
                     }
-                    _logger.debug("No catch expression matched throwing exception");
+                    exec.debug("No catch expression matched throwing exception");
                 }
 
                 // If we got through the entire catch expression set, throw the
@@ -152,7 +151,7 @@ public class ExecutableStatement implements Expression {
                 throw e;
             } finally {
                 if (_finallyBlock != null) {
-                    _logger.debug("Executing finally block...");
+                    exec.debug("Executing finally block...");
                     _finallyBlock.execute(exec, true);
                 }
             }
@@ -168,9 +167,6 @@ public class ExecutableStatement implements Expression {
         }
         return null;
     }
-
-    private static final Logger _logger =
-        Logger.getLogger(ExecutableStatement.class);
 
     private Expression _ifTest;
 
