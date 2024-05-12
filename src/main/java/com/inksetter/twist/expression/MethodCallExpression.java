@@ -33,6 +33,10 @@ public class MethodCallExpression implements Expression {
             argValues[i] = a.evaluate(ctx);
         }
 
+        // First check for common patterns
+        // 1. list/collection type built-in overrides
+        //   - filter(
+
         try {
 
             BeanInfo info = Introspector.getBeanInfo(obj.getClass());
