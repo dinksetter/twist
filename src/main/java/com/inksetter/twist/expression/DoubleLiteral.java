@@ -1,6 +1,5 @@
 package com.inksetter.twist.expression;
 
-import com.inksetter.twist.TwistException;
 import com.inksetter.twist.exec.ExecContext;
 
 public class DoubleLiteral implements Expression {

@@ -1,10 +1,6 @@
 package com.inksetter.twist.parser;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Lexer for TWIST script syntax.  This splits input up into tokens to be used by the parser.

@@ -5,14 +5,11 @@ import com.inksetter.twist.exec.StatementSequence;
 import com.inksetter.twist.expression.Expression;
 import com.inksetter.twist.expression.FunctionExpression;
 import com.inksetter.twist.expression.operators.arith.MultiplyExpression;
-import com.inksetter.twist.expression.operators.arith.PlusExpression;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class TwistParserTest {
     

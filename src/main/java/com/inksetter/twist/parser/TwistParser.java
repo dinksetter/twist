@@ -4,25 +4,11 @@ import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.exec.CatchBlock;
 import com.inksetter.twist.exec.ExecutableStatement;
 import com.inksetter.twist.exec.StatementSequence;
-import com.inksetter.twist.expression.DoubleLiteral;
-import com.inksetter.twist.expression.ElementExpression;
-import com.inksetter.twist.expression.Expression;
-import com.inksetter.twist.expression.FunctionExpression;
-import com.inksetter.twist.expression.IntegerLiteral;
-import com.inksetter.twist.expression.LiteralExpression;
-import com.inksetter.twist.expression.MemberExpression;
-import com.inksetter.twist.expression.MethodCallExpression;
-import com.inksetter.twist.expression.ReferenceExpression;
-import com.inksetter.twist.expression.StringLiteral;
-import com.inksetter.twist.expression.TernaryExpression;
+import com.inksetter.twist.expression.*;
 import com.inksetter.twist.expression.operators.AndExpression;
 import com.inksetter.twist.expression.operators.NotExpression;
 import com.inksetter.twist.expression.operators.OrExpression;
-import com.inksetter.twist.expression.operators.arith.DivisionExpression;
-import com.inksetter.twist.expression.operators.arith.MinusExpression;
-import com.inksetter.twist.expression.operators.arith.ModExpression;
-import com.inksetter.twist.expression.operators.arith.MultiplyExpression;
-import com.inksetter.twist.expression.operators.arith.PlusExpression;
+import com.inksetter.twist.expression.operators.arith.*;
 import com.inksetter.twist.expression.operators.compare.*;
 
 import java.math.BigInteger;
@@ -129,7 +115,7 @@ public class TwistParser {
             }
         }
         else if (_scan.tokenType() == TwistTokenType.FOR) {
-            stmt.setForSequence(buildForSequence());
+//            stmt.setForSequence(buildForSequence());
         }
         else {
             if (_scan.tokenType() == TwistTokenType.OPEN_BRACE) {

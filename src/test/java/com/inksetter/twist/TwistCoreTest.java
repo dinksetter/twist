@@ -114,8 +114,48 @@ public class TwistCoreTest {
         MyContext context = new MyContext();
         context.setVariable("foo", "{\"a\": 900}");
 
-            new TwistParser("aaa = json(foo); bbb = aaa.a;").parse().execute(context, false);
-            Assert.assertEquals(900, context.getVariable("bbb"));
+        new TwistParser("aaa = json(foo); bbb = aaa.a;").parse().execute(context, false);
+        Assert.assertEquals(900, context.getVariable("bbb"));
+    }
+
+    public static class ExprTestObject {
+        private final String x = "banana";
+        private final int y = 23;
+
+
+        public String getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+    }
+
+    @Test
+    public void testExpression() throws TwistException {
+        MyContext context = new MyContext();
+        context.setVariable("foo", new ExprTestObject());
+        Assert.assertTrue(ValueUtils.asBoolean(new TwistParser("foo.x == 'banana'").parseExpression().evaluate(context)));
+        Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.x != 'banana'").parseExpression().evaluate(context)));
+    }
+
+
+    @Test
+    public void testRegexMatch() throws TwistException {
+        MyContext context = new MyContext();
+        context.setVariable("foo", new ExprTestObject());
+        Assert.assertTrue(ValueUtils.asBoolean(new TwistParser("foo.x =~ 'b.*'").parseExpression().evaluate(context)));
+        Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.x =~ '.*b'").parseExpression().evaluate(context)));
+    }
+
+
+    @Test
+    public void testNumericExpression() throws TwistException {
+        MyContext context = new MyContext();
+        context.setVariable("foo", new ExprTestObject());
+        Assert.assertEquals(3, ValueUtils.asInt(new TwistParser("foo.y / 7 ").parseExpression().evaluate(context)));
+        Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.y < 19").parseExpression().evaluate(context)));
     }
 
     private static class MyContext extends AbstractContext {
