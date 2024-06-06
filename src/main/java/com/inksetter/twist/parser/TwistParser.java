@@ -1,9 +1,6 @@
 package com.inksetter.twist.parser;
 
 import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.exec.CatchBlock;
-import com.inksetter.twist.exec.ExecutableStatement;
-import com.inksetter.twist.exec.StatementSequence;
 import com.inksetter.twist.expression.*;
 import com.inksetter.twist.expression.operators.AndExpression;
 import com.inksetter.twist.expression.operators.NotExpression;
@@ -25,18 +22,6 @@ public class TwistParser {
         _scan = new TwistLexer(script);
     }
     
-    public StatementSequence parse() throws TwistParseException {
-        _scan.next();
-        
-        StatementSequence seq = buildSequence();
-        
-        if (_scan.tokenType() != TwistTokenType.END) {
-            throw new TwistParseException(_scan.getLine() + 1, _scan.getLinePos() + 1, "Unexpected token: " + _scan.current());
-        }
-
-        return seq;
-    }
-
     public Expression parseExpression() throws TwistParseException{
         _scan.next();
         return buildFullExpression();
@@ -45,175 +30,6 @@ public class TwistParser {
     //
     // Implementation
     //
-
-    protected StatementSequence buildSequence() throws TwistParseException {
-        StatementSequence sequence = new StatementSequence();
-        
-        ExecutableStatement statement = buildStatement();
-        sequence.addStatement(statement);
-        
-        while (_scan.tokenType() == TwistTokenType.SEMICOLON) {
-            // Skip the semicolon
-            _scan.next();
-
-            // Special case -- if someone ends a command sequence with a semicolon, check for reasonable
-            // end-of-sequence characters.
-            if (_scan.tokenType() == TwistTokenType.CLOSE_BRACE || _scan.tokenType() == TwistTokenType.END) {
-                break;
-            }
-
-            statement = buildStatement();
-            sequence.addStatement(statement);
-        }
-        
-        return sequence;
-    }
-    
-    protected Expression buildIfExpression() throws TwistParseException {
-        _scan.next();
-        if (_scan.tokenType() != TwistTokenType.OPEN_PAREN) {
-            throw parseException("(");
-        }
-        
-        _scan.next();
-        return buildFullExpression();
-    }
-    
-    protected ExecutableStatement buildStatement() throws TwistParseException {
-        ExecutableStatement stmt = new ExecutableStatement();
-
-        if (_scan.tokenType() == TwistTokenType.IF) {
-            stmt.setIfTest(buildIfExpression());
-
-            if (_scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
-                throw parseException(")");
-            }
-            _scan.next();
-
-            stmt.setIfBlock(buildStatement());
-
-            if (_scan.tokenType() == TwistTokenType.ELSE) {
-                _scan.next();
-                stmt.setElseBlock(buildStatement());
-            }
-        }
-        else if (_scan.tokenType() == TwistTokenType.TRY) {
-            _scan.next();
-
-            // We expect braces here, but we want this to be
-            if (_scan.tokenType() != TwistTokenType.OPEN_BRACE) {
-                throw parseException("{");
-            }
-
-            // Don't scan the brace.  Let the main block parser do that.
-            stmt.setSubSequence(buildSubSequence());
-            stmt.setCatchBlocks(buildCatchBlocks());
-            if (_scan.tokenType() == TwistTokenType.FINALLY) {
-                // Scan past the FINALLY keyword
-                _scan.next();
-                stmt.setFinallyBlock(buildSubSequence());
-            }
-        }
-        else if (_scan.tokenType() == TwistTokenType.FOR) {
-//            stmt.setForSequence(buildForSequence());
-        }
-        else {
-            if (_scan.tokenType() == TwistTokenType.OPEN_BRACE) {
-                stmt.setSubSequence(buildSubSequence());
-            }
-            else {
-                if (_scan.tokenType() == TwistTokenType.IDENTIFIER) {
-                    String identifier = getIdentifier("NAME");
-                    TwistLexer.TwistToken save = _scan.current();
-                    _scan.next();
-                    while (_scan.tokenType() == TwistTokenType.DOT) {
-                        _scan.next();
-                        if (_scan.tokenType() == TwistTokenType.IDENTIFIER) {
-
-                        }
-                    }
-
-                    if (_scan.tokenType() == TwistTokenType.ASSIGNMENT) {
-                        // Assignment
-                        _scan.next();
-                        stmt.setAssignment(identifier);
-                    }
-                    else {
-                        _scan.reset(save);
-                    }
-                }
-                stmt.setExpression(buildFullExpression());
-            }
-        }
-
-        return stmt;
-    }
-    
-    protected List<CatchBlock> buildCatchBlocks() throws TwistParseException {
-        if (_scan.tokenType() != TwistTokenType.CATCH) {
-            return null;
-        }
-
-        List<CatchBlock> blocks = new ArrayList<>();
-        
-        while (_scan.tokenType() == TwistTokenType.CATCH) {
-            CatchBlock block = new CatchBlock();
-            _scan.next();
-            if (_scan.tokenType() != TwistTokenType.OPEN_PAREN) {
-                throw parseException("(");
-            }
-            _scan.next();
-
-            block.setType(getIdentifier("TypeName"));
-            _scan.next();
-
-            block.setVarName(getIdentifier("NAME"));
-            _scan.next();
-
-            if (_scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
-                throw parseException(")");
-            }
-            _scan.next();
-            
-            if (_scan.tokenType() != TwistTokenType.OPEN_BRACE) {
-                throw parseException("{");
-            }
-            
-            _scan.next();
-            
-            // If it is not a close brace then assume it is a sequence
-            // If it was a close brace we just leave the sequence empty
-            // as in ignoring the exception
-            if (_scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
-                block.setBlock(buildSequence());    
-            }
-            
-            if (_scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
-                throw parseException("}");
-            }
-
-            _scan.next();
-            
-            blocks.add(block);
-        }
-        return blocks;
-    }
-    
-    protected StatementSequence buildSubSequence() throws TwistParseException {
-        if (_scan.tokenType() != TwistTokenType.OPEN_BRACE) {
-            throw parseException("{");
-        }
-
-        _scan.next();
-        StatementSequence seq = buildSequence(); 
-        
-        if (_scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
-            throw parseException("}");
-        }
-        _scan.next();
-        
-        return seq;
-    }
 
     protected Expression buildExpressionTerm() throws TwistParseException {
         Expression expr = buildExpressionFactor();

@@ -222,9 +222,7 @@ public class TwistLexer {
                 return new TwistToken(_readStringLiteral(c), _begin, _startOfToken);
             case '.':
                 return new TwistToken(TwistTokenType.DOT, _begin, _startOfToken);
-            case ';':
-                return new TwistToken(TwistTokenType.SEMICOLON, _begin, _startOfToken);
-            case '|': 
+            case '|':
                 if (_hasNext() && _peekChar() == '|') {
                     // This is to go over the | character
                     _nextChar();
@@ -295,7 +293,7 @@ public class TwistLexer {
                 }
 
                 else {
-                    return new TwistToken(TwistTokenType.ASSIGNMENT, _begin, _startOfToken);
+                    throw new TwistLexException(_line + 1, _linePos + 1, "Unrecognized identifier: " + c);
                 }
             case '>':
                 if (_hasNext() && _peekChar() == '=') {

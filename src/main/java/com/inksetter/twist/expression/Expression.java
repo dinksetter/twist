@@ -1,8 +1,8 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.exec.EvalContext;
 
 public interface Expression {
-    Object evaluate(ExecContext ctx) throws TwistException;
+    Object evaluate(EvalContext ctx) throws TwistException;
 }

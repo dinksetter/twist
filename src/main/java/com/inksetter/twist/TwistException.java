@@ -6,7 +6,7 @@ package com.inksetter.twist;
  *
  * @author  Derek Inksetter
  */
-public class TwistException extends Exception {
+public class TwistException extends RuntimeException {
 
     /**
      * @param message

@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.exec.EvalContext;
 import com.inksetter.twist.expression.Expression;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public abstract class SingleArgFunction extends BaseFunction {
     }
 
     @Override
-    protected final Object invoke(ExecContext ctx, List<Object> args) throws TwistException {
+    protected final Object invoke(EvalContext ctx, List<Object> args) throws TwistException {
         return this.invoke(args.get(0));
     }
 

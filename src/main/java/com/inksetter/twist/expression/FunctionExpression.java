@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.exec.EvalContext;
 import com.inksetter.twist.expression.function.*;
 
 import java.util.HashMap;
@@ -28,7 +28,7 @@ public class FunctionExpression implements Expression {
         _function = function;
     }
     
-    public Object evaluate(ExecContext ctx) throws TwistException {
+    public Object evaluate(EvalContext ctx) throws TwistException {
         return _function.evaluate(ctx, _args);
     }
     
@@ -73,7 +73,6 @@ public class FunctionExpression implements Expression {
         _BUILTINS.put("min", new MinFunction());
         _BUILTINS.put("max", new MaxFunction());
         _BUILTINS.put("substr", new SubstrFunction());
-        _BUILTINS.put("json", new JsonFunction());
         _BUILTINS.put("instr", new IndexOfFunction());
         _BUILTINS.put("b64decode", new Base64DecodeFunction());
         _BUILTINS.put("b64encode", new Base64EncodeFunction());

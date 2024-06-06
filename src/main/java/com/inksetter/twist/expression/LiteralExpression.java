@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.exec.EvalContext;
 
 public class LiteralExpression implements Expression {
     public LiteralExpression(Object value) {
@@ -13,7 +13,7 @@ public class LiteralExpression implements Expression {
         _value = value;
     }
     
-    public Object evaluate(ExecContext ctx) {
+    public Object evaluate(EvalContext ctx) {
         return _value;
     }
     

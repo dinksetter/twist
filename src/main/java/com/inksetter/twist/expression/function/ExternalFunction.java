@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.exec.EvalContext;
 import com.inksetter.twist.expression.Expression;
 
 import java.util.ArrayList;
@@ -18,8 +18,8 @@ public class ExternalFunction implements TwistFunction {
     }
 
     @Override
-    public Object evaluate(ExecContext ctx, List<Expression> args) throws TwistException {
-        if (!ctx.lookupExternalFunction(_functionName)) {
+    public Object evaluate(EvalContext ctx, List<Expression> args) throws TwistException {
+        if (!ctx.functionExists(_functionName)) {
             throw new TwistException("Unrecognized Function: " + _functionName);
         }
 
@@ -29,7 +29,7 @@ public class ExternalFunction implements TwistFunction {
             argValues.add(arg.evaluate(ctx));
         }
 
-        return ctx.invokeExternalFunction(_functionName, argValues);
+        return ctx.callFunction(_functionName, argValues);
     }
 
     private final String _functionName;

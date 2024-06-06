@@ -2,7 +2,7 @@ package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.exec.EvalContext;
 import com.inksetter.twist.expression.Expression;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
 public class IfNullFunction implements TwistFunction {
 
     @Override
-    public Object evaluate(ExecContext ctx, List<Expression> args) throws TwistException {
+    public Object evaluate(EvalContext ctx, List<Expression> args) throws TwistException {
         if (args.size() != 2) {
             throw new FunctionArgumentException("expected 2 arguments");
         }

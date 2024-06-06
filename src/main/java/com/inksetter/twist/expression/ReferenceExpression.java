@@ -1,14 +1,14 @@
 package com.inksetter.twist.expression;
 
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.exec.EvalContext;
 
 public class ReferenceExpression implements Expression {
     public ReferenceExpression(String name) {
         _name = name;
     }
     
-    public Object evaluate(ExecContext ctx) {
-        return ctx.getVariable(_name);
+    public Object evaluate(EvalContext ctx) {
+        return ctx.lookup(_name);
     }
     
     // @see java.lang.Object#toString()

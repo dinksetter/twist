@@ -7,8 +7,6 @@ public enum TwistTokenType {
     NUMBER,
     DOUBLE_STRING,
     SINGLE_STRING,
-    SEMICOLON,
-    ASSIGNMENT,
     DOT,
     OPEN_PAREN, CLOSE_PAREN,
     OPEN_BRACE, CLOSE_BRACE,
