@@ -8,6 +8,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -30,15 +31,18 @@ public class MemberExpression implements Expression {
             return ((Map<?, ?>) obj).get(_memberName);
         }
 
-        // option 2 - bean introspection
+        // option 2 - getter
         try {
-            BeanInfo info = Introspector.getBeanInfo(obj.getClass(), Object.class, Introspector.IGNORE_ALL_BEANINFO);
-            PropertyDescriptor descriptor = Arrays.stream(info.getPropertyDescriptors()).filter(pd -> pd.getName().equals(_memberName)).findFirst().orElse(null);
-            if (descriptor == null) {
-                throw new TwistException("No method " + _memberName + " on " + obj);
+            Class<?> cls = obj.getClass();
+            Method readMethod;
+            try {
+                readMethod = cls.getMethod("get" + Character.toUpperCase(_memberName.charAt(0)) + _memberName.substring(1));
+            } catch (NoSuchMethodException e) {
+                readMethod = cls.getMethod("is" + Character.toUpperCase(_memberName.charAt(0)) + _memberName.substring(1));
             }
-            return descriptor.getReadMethod().invoke(obj);
-        } catch (IntrospectionException e) {
+
+            return readMethod.invoke(obj);
+        } catch (NoSuchMethodException e) {
             throw new TwistException("Unable to find properties of " + obj, e);
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new TwistException("Unable to get properties of " + obj, e);
