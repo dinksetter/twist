@@ -1,7 +1,12 @@
 package com.inksetter.twist.parser;
 
+import com.inksetter.twist.FunctionResolver;
 import com.inksetter.twist.TwistDataType;
+import com.inksetter.twist.exec.NoSuchFunctionException;
 import com.inksetter.twist.expression.*;
+import com.inksetter.twist.expression.function.ExternalFunction;
+import com.inksetter.twist.expression.function.GenericFunction;
+import com.inksetter.twist.expression.function.TwistFunction;
 import com.inksetter.twist.expression.operators.AndExpression;
 import com.inksetter.twist.expression.operators.NotExpression;
 import com.inksetter.twist.expression.operators.OrExpression;
@@ -13,15 +18,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The core command parser for Twist command syntax.  This parser reads string input
- * and produces an executable CommandSequence tree.
+ * The core express parser for Twist expression syntax.  This parser reads string input
+ * and produces an expression object.
  */
 public class TwistParser {
+    private final FunctionResolver _functionResolver;
+
+    public TwistParser(CharSequence script, FunctionResolver functionResolver) {
+        _scan = new TwistLexer(script);
+        _functionResolver = functionResolver;
+    }
 
     public TwistParser(CharSequence script) {
         _scan = new TwistLexer(script);
+        _functionResolver = null;
     }
-    
+
     public Expression parseExpression() throws TwistParseException{
         _scan.next();
         return buildFullExpression();
@@ -254,7 +266,6 @@ public class TwistParser {
                 }
             }
             catch (NumberFormatException e) {
-                e.printStackTrace();
                 throw parseException("NUMERIC");
             }
             
@@ -288,8 +299,17 @@ public class TwistParser {
     protected Expression buildFunctionExpression(String functionName) throws TwistParseException {
         // This method only gets called if parentheses have been seen
         List<Expression> functionArgs = getFunctionArgs();
-
-        return FunctionExpression.chooseFunction(functionName, functionArgs);
+        TwistFunction builtin = FunctionExpression.chooseFunction(functionName);
+        if (builtin == null && _functionResolver != null) {
+            GenericFunction function = _functionResolver.lookupFunction(functionName);
+            if (function != null) {
+                builtin = new ExternalFunction(function);
+            }
+        }
+        if (builtin == null) {
+            throw new NoSuchFunctionException(functionName);
+        }
+        return new FunctionExpression(functionName, functionArgs, builtin);
     }
 
     private List<Expression> getFunctionArgs() throws TwistParseException {
@@ -332,14 +352,6 @@ public class TwistParser {
         } while (startpos < endpos);
         
         return buf.toString();
-    }
-
-    protected String getIdentifier(String expect) throws TwistParseException {
-        if (_scan.tokenType() == TwistTokenType.IDENTIFIER) {
-            return _scan.current().getValue();
-        }
-
-        throw parseException(expect);
     }
     
     protected TwistParseException parseException(String expected) {

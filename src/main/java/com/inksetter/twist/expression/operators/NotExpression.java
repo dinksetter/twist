@@ -2,7 +2,7 @@ package com.inksetter.twist.expression.operators;
 
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 import com.inksetter.twist.expression.Expression;
 
 public class NotExpression implements Expression {
@@ -10,7 +10,7 @@ public class NotExpression implements Expression {
         _target = target;
     }
     
-    public Object evaluate(EvalContext ctx) throws TwistException {
+    public Object evaluate(SymbolSource ctx) throws TwistException {
         Object targetValue = _target.evaluate(ctx);
 
         return !ValueUtils.asBoolean(targetValue);

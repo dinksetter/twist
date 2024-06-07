@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -20,7 +20,7 @@ public class MethodCallExpression implements Expression {
     }
 
     @Override
-    public Object evaluate(EvalContext ctx) throws TwistException {
+    public Object evaluate(SymbolSource ctx) throws TwistException {
         Object obj = _target.evaluate(ctx);
         if (obj == null) {
             throw new NullValueException(_target.toString());
@@ -42,7 +42,7 @@ public class MethodCallExpression implements Expression {
             for (MethodDescriptor desc : info.getMethodDescriptors()) {
                 String methodName = desc.getName();
 
-                if (_methodName.equals(desc.getName())) {
+                if (_methodName.equals(methodName)) {
                     Method method = desc.getMethod();
                     if (method.getParameterCount() == argValues.length) {
                         try {

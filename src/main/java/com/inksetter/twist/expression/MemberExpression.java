@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -19,7 +19,7 @@ public class MemberExpression implements Expression {
     }
 
     @Override
-    public Object evaluate(EvalContext ctx) throws TwistException {
+    public Object evaluate(SymbolSource ctx) throws TwistException {
         Object obj = _target.evaluate(ctx);
         if (obj == null) {
             throw new NullValueException(_target.toString());

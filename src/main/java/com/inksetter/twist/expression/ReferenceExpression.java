@@ -1,13 +1,13 @@
 package com.inksetter.twist.expression;
 
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 
 public class ReferenceExpression implements Expression {
     public ReferenceExpression(String name) {
         _name = name;
     }
     
-    public Object evaluate(EvalContext ctx) {
+    public Object evaluate(SymbolSource ctx) {
         return ctx.lookup(_name);
     }
     

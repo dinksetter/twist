@@ -3,7 +3,7 @@ package com.inksetter.twist.expression;
 import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public class ElementExpression implements Expression {
     }
 
     @Override
-    public Object evaluate(EvalContext ctx) throws TwistException {
+    public Object evaluate(SymbolSource ctx) throws TwistException {
         Object value = _target.evaluate(ctx);
         if (ValueUtils.getType(value) != TwistDataType.ARRAY) {
             throw new TypeMismatchException("Expected array, got " + value);

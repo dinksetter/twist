@@ -2,7 +2,7 @@ package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 
 /**
  * An expression that represents a ternary operator (test ? then : else)
@@ -15,7 +15,7 @@ public class TernaryExpression implements Expression {
         _elseExpr = elseExpr;
     }
     
-    public Object evaluate(EvalContext ctx) throws TwistException {
+    public Object evaluate(SymbolSource ctx) throws TwistException {
         Object testValue = _testExpr.evaluate(ctx);
 
         if (ValueUtils.asBoolean(testValue)) {

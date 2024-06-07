@@ -1,19 +1,15 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistDataType;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 
 public class LiteralExpression implements Expression {
-    public LiteralExpression(Object value) {
-        this(TwistDataType.lookupClass(value.getClass()), value);
-    }
-    
     public LiteralExpression(TwistDataType type, Object value) {
         _type = type;
         _value = value;
     }
     
-    public Object evaluate(EvalContext ctx) {
+    public Object evaluate(SymbolSource ctx) {
         return _value;
     }
     

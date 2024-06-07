@@ -1,13 +1,16 @@
 package com.inksetter.twist;
 
 import com.inksetter.twist.exec.SimpleContext;
+import com.inksetter.twist.expression.function.GenericFunction;
 import com.inksetter.twist.parser.TwistParseException;
 import com.inksetter.twist.parser.TwistParser;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -115,21 +118,23 @@ public class TwistCoreTest {
         Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.y < 19").parseExpression().evaluate(context)));
     }
 
+
+    @Test
+    public void testCustomFunction() throws TwistParseException {
+        MyContext context = new MyContext();
+        MyResolver resolver = new MyResolver();
+        context.setVariable("foo", new ExprTestObject());
+        assertEquals("called z([3])", new TwistParser("z(foo.y / 7) ", resolver).parseExpression().evaluate(context));
+        assertEquals("called abc([false])", new TwistParser("abc(foo.y < 19)", resolver).parseExpression().evaluate(context));
+    }
+
     private static class MyContext extends SimpleContext {
+    }
 
-        private final List<String> _functionCalls = new ArrayList<>();
-        private final List<List<Object>> _functionArgs = new ArrayList<>();
-
+    private static class MyResolver implements FunctionResolver {
         @Override
-        public Object callFunction(String functionName, List<Object> argValues) {
-            _functionCalls.add(functionName);
-            _functionArgs.add(argValues);
-            return -3.2;
-        }
-
-        @Override
-        public boolean functionExists(String functionName) {
-            return true;
+        public GenericFunction lookupFunction(String name) {
+            return (values) -> "called " + name + "(" + values + ")";
         }
     }
 }

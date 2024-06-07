@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 import com.inksetter.twist.expression.Expression;
 
 import java.util.List;
@@ -25,5 +25,5 @@ public interface TwistFunction {
      * @return a single value.
      * @throws TwistException if an error occurs.
      */
-    Object evaluate(EvalContext ctx, List<Expression> args) throws TwistException;
+    Object evaluate(SymbolSource ctx, List<Expression> args) throws TwistException;
 }

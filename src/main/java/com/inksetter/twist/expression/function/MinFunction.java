@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class MinFunction extends BaseFunction {
     @Override
-    protected Object invoke(EvalContext ctx, List<Object> args) {
+    protected Object invoke(SymbolSource ctx, List<Object> args) {
         Object minValue = null;
         
         for (Object a : args) {

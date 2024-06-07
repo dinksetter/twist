@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.operators;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 import com.inksetter.twist.expression.Expression;
 
 public abstract class AbsractOperExpression implements Expression {
@@ -10,7 +10,7 @@ public abstract class AbsractOperExpression implements Expression {
         _right = right;
     }
     
-    public Object evaluate(EvalContext ctx) throws TwistException {
+    public Object evaluate(SymbolSource ctx) throws TwistException {
         Object leftValue = _left.evaluate(ctx);
         Object rightValue = _right.evaluate(ctx);
         

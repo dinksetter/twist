@@ -1,13 +1,13 @@
 package com.inksetter.twist.expression;
 
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 
 public class StringLiteral implements Expression {
     public StringLiteral(String value) {
         _value = value;
     }
 
-    public String evaluate(EvalContext ctx) {
+    public String evaluate(SymbolSource ctx) {
         return _value;
     }
 

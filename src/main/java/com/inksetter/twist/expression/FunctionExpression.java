@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 import com.inksetter.twist.expression.function.*;
 
 import java.util.HashMap;
@@ -13,22 +13,14 @@ import java.util.Map;
  * in-line as values, and there's support for calling user-supplied functions.
  */
 public class FunctionExpression implements Expression {
-    
-    public static FunctionExpression chooseFunction(String name, List<Expression> args) {
-        TwistFunction function = _BUILTINS.get(name.toLowerCase());
-        if (function == null) {
-            function = new ExternalFunction(name);
-        }
-        return new FunctionExpression(name, args, function);
-    }
-    
-    private FunctionExpression(String name, List<Expression> args, TwistFunction function) {
+
+    public FunctionExpression(String name, List<Expression> args, TwistFunction function) {
         _name = name;
         _args = args;
         _function = function;
     }
     
-    public Object evaluate(EvalContext ctx) throws TwistException {
+    public Object evaluate(SymbolSource ctx) throws TwistException {
         return _function.evaluate(ctx, _args);
     }
     
@@ -56,7 +48,11 @@ public class FunctionExpression implements Expression {
     private final String _name;
     private final List<Expression> _args;
     private final TwistFunction _function;
-    
+
+    public static TwistFunction chooseFunction(String name) {
+        return _BUILTINS.get(name.toLowerCase());
+    }
+
     private final static Map<String, TwistFunction> _BUILTINS = new HashMap<>();
     static {
         _BUILTINS.put("date", new DateFunction());

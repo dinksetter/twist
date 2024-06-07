@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.EvalContext;
+import com.inksetter.twist.exec.SymbolSource;
 import com.inksetter.twist.expression.Expression;
 
 import java.util.Date;
@@ -19,7 +19,7 @@ public class NowFunction extends BaseFunction {
     }
 
     @Override
-    protected Date invoke(EvalContext ctx, List<Object> args) {
+    protected Date invoke(SymbolSource ctx, List<Object> args) {
         return new Date();
     }
 }
