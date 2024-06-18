@@ -169,12 +169,46 @@ public class TwistCoreTest {
     public void testRawJson() throws TwistException {
         MyContext context = new MyContext();
 
-        new TwistParser("aaa = {a:900}; bbb = aaa.a;").parseScript().execute(context, false);
+        new TwistParser("aaa = {'a':900}; bbb = aaa.a;").parseScript().execute(context, false);
         Assert.assertEquals(900, context.getVariable("bbb"));
         Object aaa = context.getVariable("aaa");
         Assert.assertTrue(aaa instanceof Map);
         Assert.assertEquals(900, ((Map<String, Object>)aaa).get("a"));
         Assert.assertEquals(900, context.getVariable("bbb"));
+    }
+
+    @Test
+    public void testComplexJson() throws TwistException {
+        MyContext context = new MyContext();
+
+        String script = """
+                aaa = {
+                   "version":1.0,
+                   "data":[
+                       {
+                           "bookId": "0001",
+                           "title": "my book",
+                           "isbn": "fdsja910321"
+                       },
+                       {
+                           "bookId": "0002",
+                           "title": "my book too",
+                           "isbn": "fdsja910311"
+                       },
+                       {
+                           "bookId": "0009",
+                           "title": "where the wild thing's are",
+                           "isbn": "abchzzz0123"
+                       }
+                   ],
+                   "transactionId": 902,
+                   "timestamp": "2024-05-06T07:03:09"
+                };
+                b = aaa.data[2].isbn + "/" + aaa.version; 
+                """;
+
+        new TwistParser(script).parseScript().execute(context, false);
+        Assert.assertEquals("abchzzz0123/1", context.getVariable("b"));
     }
 
     @Test

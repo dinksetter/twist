@@ -57,7 +57,7 @@ public enum TwistDataType
             return DOUBLE;
         else if (cls.isArray() && cls.getComponentType() == Byte.TYPE)
             return BINARY;
-        else if (cls.isArray() || cls.isAssignableFrom(Collection.class))
+        else if (cls.isArray() || Collection.class.isAssignableFrom(cls))
             return ARRAY;
         else if (!cls.isPrimitive())
             return OBJECT;
