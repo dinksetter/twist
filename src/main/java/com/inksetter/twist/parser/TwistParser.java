@@ -3,7 +3,7 @@ package com.inksetter.twist.parser;
 import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.exec.CatchBlock;
 import com.inksetter.twist.exec.ExecutableStatement;
-import com.inksetter.twist.exec.StatementSequence;
+import com.inksetter.twist.exec.ExecutableScript;
 import com.inksetter.twist.expression.*;
 import com.inksetter.twist.expression.operators.AndExpression;
 import com.inksetter.twist.expression.operators.NotExpression;
@@ -12,8 +12,11 @@ import com.inksetter.twist.expression.operators.arith.*;
 import com.inksetter.twist.expression.operators.compare.*;
 
 import java.math.BigInteger;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The core command parser for Twist command syntax.  This parser reads string input
@@ -25,10 +28,10 @@ public class TwistParser {
         _scan = new TwistLexer(script);
     }
     
-    public StatementSequence parse() throws TwistParseException {
+    public ExecutableScript parseScript() throws TwistParseException {
         _scan.next();
         
-        StatementSequence seq = buildSequence();
+        ExecutableScript seq = buildScript();
         
         if (_scan.tokenType() != TwistTokenType.END) {
             throw new TwistParseException(_scan.getLine() + 1, _scan.getLinePos() + 1, "Unexpected token: " + _scan.current());
@@ -46,15 +49,17 @@ public class TwistParser {
     // Implementation
     //
 
-    protected StatementSequence buildSequence() throws TwistParseException {
-        StatementSequence sequence = new StatementSequence();
+    protected ExecutableScript buildScript() throws TwistParseException {
+        ExecutableScript sequence = new ExecutableScript();
         
         ExecutableStatement statement = buildStatement();
         sequence.addStatement(statement);
         
-        while (_scan.tokenType() == TwistTokenType.SEMICOLON) {
-            // Skip the semicolon
-            _scan.next();
+        while (_scan.tokenType() == TwistTokenType.SEMICOLON || _scan.current().getLeadingWhitespace().contains("\n")) {
+            // Skip the semicolon. Whitespace rules will take care of the newline end of statement.
+            if (_scan.tokenType() == TwistTokenType.SEMICOLON) {
+                _scan.next();
+            }
 
             // Special case -- if someone ends a command sequence with a semicolon, check for reasonable
             // end-of-sequence characters.
@@ -185,7 +190,7 @@ public class TwistParser {
             // If it was a close brace we just leave the sequence empty
             // as in ignoring the exception
             if (_scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
-                block.setBlock(buildSequence());    
+                block.setBlock(buildScript());
             }
             
             if (_scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
@@ -199,13 +204,13 @@ public class TwistParser {
         return blocks;
     }
     
-    protected StatementSequence buildSubSequence() throws TwistParseException {
+    protected ExecutableScript buildSubSequence() throws TwistParseException {
         if (_scan.tokenType() != TwistTokenType.OPEN_BRACE) {
             throw parseException("{");
         }
 
         _scan.next();
-        StatementSequence seq = buildSequence(); 
+        ExecutableScript seq = buildScript();
         
         if (_scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
             throw parseException("}");
@@ -381,6 +386,7 @@ public class TwistParser {
 
         return expr;
     }
+
     protected Expression buildExpressionPossibleValue() throws TwistParseException {
         boolean isNegative = false;
         switch (_scan.tokenType()) {
@@ -463,12 +469,76 @@ public class TwistParser {
         case FALSE:
             _scan.next();
             return new LiteralExpression(TwistDataType.BOOLEAN, Boolean.FALSE);
+        case OPEN_BRACE:
+            return buildJsonObject();
+        case OPEN_BRACKET:
+            return buildJsonArray();
         }
 
         // Now, we've failed to find an expression.
         throw parseException("expression");
     }
-    
+
+    protected Expression buildJsonObject() throws TwistParseException {
+        _scan.next();
+        Map<String, Expression> object = new LinkedHashMap<>();
+        while (true) {
+            String fieldName;
+            switch (_scan.tokenType()) {
+                case SINGLE_STRING:
+                case DOUBLE_STRING:
+                    String unquoted = _scan.current().getValue();
+                    fieldName = dequote(unquoted);
+                    break;
+                case IDENTIFIER:
+                    fieldName = _scan.current().getValue();
+                    break;
+                default:
+                    throw parseException("field");
+            }
+            _scan.next();
+            if (_scan.tokenType() != TwistTokenType.COLON) {
+                throw parseException("colon");
+            }
+            _scan.next();
+            Expression value = buildFullExpression();
+            object.put(fieldName, value);
+
+            if (_scan.tokenType() == TwistTokenType.CLOSE_BRACE) {
+                _scan.next();
+                break;
+            }
+
+            if (_scan.tokenType() != TwistTokenType.COMMA) {
+                throw parseException("comma");
+            }
+
+            // Skip the comma;
+            _scan.next();
+        }
+        return new ObjectExpression(object);
+    }
+    protected Expression buildJsonArray() throws TwistParseException {
+        _scan.next();
+        List<Expression> array = new ArrayList<>();
+        while (true) {
+            Expression value = buildFullExpression();
+            array.add(value);
+
+            if (_scan.tokenType() == TwistTokenType.CLOSE_BRACKET) {
+                _scan.next();
+                break;
+            }
+
+            if (_scan.tokenType() != TwistTokenType.COMMA) {
+                throw parseException("comma");
+            }
+            _scan.next();
+        }
+        return new ArrayExpression(array);
+    }
+
+
     protected Expression buildFunctionExpression(String functionName) throws TwistParseException {
         // This method only gets called if parentheses have been seen
         List<Expression> functionArgs = getFunctionArgs();

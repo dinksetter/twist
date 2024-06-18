@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class StatementSequence implements Serializable {
+public class ExecutableScript implements Serializable {
 
     public List<ExecutableStatement> getStatements() {
         return _statements;

@@ -39,7 +39,7 @@ public class ExecutableStatement implements Serializable {
         _catchBlocks = catchBlocks;
     }
 
-    public void setFinallyBlock(StatementSequence finallyBlock) {
+    public void setFinallyBlock(ExecutableScript finallyBlock) {
         _finallyBlock = finallyBlock;
     }
 
@@ -132,7 +132,7 @@ public class ExecutableStatement implements Serializable {
                             // simple catch expression, then
                             // we return the error results of the exception that got
                             // thrown.
-                            StatementSequence block = catchBlock.getBlock();
+                            ExecutableScript block = catchBlock.getBlock();
 
                             // If there's a block of code to execute on this catch
                             // expression, return the result of executing that
@@ -176,10 +176,10 @@ public class ExecutableStatement implements Serializable {
     private Expression _expression;
 
     private List<CatchBlock> _catchBlocks;
-    private StatementSequence _finallyBlock;
-    private StatementSequence _subSequence;
+    private ExecutableScript _finallyBlock;
+    private ExecutableScript _subSequence;
 
-    public void setSubSequence(StatementSequence subSequence) {
+    public void setSubSequence(ExecutableScript subSequence) {
         _subSequence = subSequence;
     }
 }

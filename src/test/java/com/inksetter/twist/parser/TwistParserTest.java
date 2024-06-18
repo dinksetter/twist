@@ -1,7 +1,7 @@
 package com.inksetter.twist.parser;
 
 import com.inksetter.twist.exec.ExecutableStatement;
-import com.inksetter.twist.exec.StatementSequence;
+import com.inksetter.twist.exec.ExecutableScript;
 import com.inksetter.twist.expression.Expression;
 import com.inksetter.twist.expression.FunctionExpression;
 import com.inksetter.twist.expression.operators.arith.MultiplyExpression;
@@ -17,7 +17,7 @@ public class TwistParserTest {
     @Test
     public void testEmptyScript() {
         try {
-            StatementSequence parsed = new TwistParser("").parse();
+            ExecutableScript parsed = new TwistParser("").parseScript();
             fail("Expected parse exception, got [" + parsed + "]");
         }
         catch (TwistParseException e) {
@@ -27,7 +27,7 @@ public class TwistParserTest {
 
     @Test
     public void testAssignment() throws TwistParseException {
-        StatementSequence parsed = new TwistParser("a = 100;").parse();
+        ExecutableScript parsed = new TwistParser("a = 100;").parseScript();
         List<ExecutableStatement> statements = parsed.getStatements();
         assertEquals(1, statements.size());
         ExecutableStatement statement = statements.get(0);
@@ -42,14 +42,14 @@ public class TwistParserTest {
                 "b = callFunction(a, 'String');\n" +
                 "if (a == b && c != true) print('WOW');\n";
 
-        StatementSequence parsed = new TwistParser(script).parse();
+        ExecutableScript parsed = new TwistParser(script).parseScript();
         List<ExecutableStatement> statements = parsed.getStatements();
         assertEquals(3, statements.size());
     }
 
     @Test
     public void testTernaryExpression() throws TwistParseException {
-        StatementSequence parsed = new TwistParser("foo = a < 100 ? 'Yes' : 'No'").parse();
+        ExecutableScript parsed = new TwistParser("foo = a < 100 ? 'Yes' : 'No'").parseScript();
         List<ExecutableStatement> statements = parsed.getStatements();
         assertEquals(1, statements.size());
         ExecutableStatement statement = statements.get(0);
@@ -62,7 +62,7 @@ public class TwistParserTest {
         String script =
                 "a = 1000 * func('var' + b);" +
                 "func2(a);";
-        StatementSequence parsed = new TwistParser(script).parse();
+        ExecutableScript parsed = new TwistParser(script).parseScript();
         List<ExecutableStatement> statements = parsed.getStatements();
         assertEquals(2, statements.size());
         ExecutableStatement statement = statements.get(0);

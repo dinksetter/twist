@@ -9,7 +9,7 @@ public class CatchBlock {
         _varName = varName;
     }
 
-    public void setBlock(StatementSequence block) {
+    public void setBlock(ExecutableScript block) {
         _block = block;
     }
     
@@ -24,7 +24,7 @@ public class CatchBlock {
     /**
      * @return Returns the block.
      */
-    public StatementSequence getBlock() {
+    public ExecutableScript getBlock() {
         return _block;
     }
     
@@ -46,5 +46,5 @@ public class CatchBlock {
     
     private String _typeName;
     private String _varName;
-    private StatementSequence _block;
+    private ExecutableScript _block;
 }
