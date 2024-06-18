@@ -228,7 +228,6 @@ public class TwistCoreTest {
         private final String x = "banana";
         private final int y = 23;
 
-
         public String getX() {
             return x;
         }

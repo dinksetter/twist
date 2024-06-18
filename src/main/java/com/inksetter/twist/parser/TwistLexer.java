@@ -53,35 +53,6 @@ public class TwistLexer {
         private final int _end;
     }
 
-    /**
-     * A reference into the current lexer state.
-     */
-    public static class Reference {
-        private Reference(int pos) {
-            _refPos = pos;
-        }
-        private final int _refPos;
-    }
-    
-    /**
-     * Marks the current place in the input string. This can be used to get a portion
-     * of the input string later.
-     * @return
-     */
-    public Reference markPlace() {
-        return new Reference(_currentToken._beginWhitespace);
-    }
-    
-    /**
-     * Gets a portion of the input as a string.  This can be used to get large, complex
-     * parsed areas as text.
-     * @param mark
-     * @return
-     */
-    public String getTextSinceMark(Reference mark) {
-        return _in.subSequence(mark._refPos, _currentToken._beginToken).toString();
-    }
-
     public void reset(TwistToken token) {
         _currentToken = token;
         _pos = token._end;
