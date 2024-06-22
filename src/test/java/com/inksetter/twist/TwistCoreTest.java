@@ -1,6 +1,5 @@
 package com.inksetter.twist;
 
-import com.inksetter.twist.exec.AbstractContext;
 import com.inksetter.twist.exec.ExecutableScript;
 import com.inksetter.twist.parser.TwistParseException;
 import com.inksetter.twist.parser.TwistParser;
@@ -263,7 +262,17 @@ public class TwistCoreTest {
         Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.y < 19").parseExpression().evaluate(context)));
     }
 
-    private static class MyContext extends AbstractContext {
+
+    @Test
+    public void testInternalMethods() throws TwistException {
+        MyContext context = new MyContext();
+        context.setVariable("foo", new ExprTestObject());
+        context.setVariable("bar", "spacey string   ");
+        Assert.assertEquals("nana", ValueUtils.asString(new TwistParser("foo.x.substring(2)").parseExpression().evaluate(context)));
+        Assert.assertEquals("spacey string", ValueUtils.asString(new TwistParser("bar.strip()").parseExpression().evaluate(context)));
+    }
+
+    private static class MyContext extends BaseScriptContext {
 
         private final List<String> _functionCalls = new ArrayList<>();
         private final List<List<Object>> _functionArgs = new ArrayList<>();

@@ -1,5 +1,6 @@
 package com.inksetter.twist.exec;
 
+import com.inksetter.twist.ScriptContext;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.expression.Expression;
@@ -8,42 +9,52 @@ import java.io.Serializable;
 import java.util.List;
 
 public class ExecutableStatement implements Serializable {
-    
+
+    private Expression ifTest;
+    private ExecutableStatement ifStatement;
+    private ExecutableStatement elseStatement;
+    private String assignmentIdentifier;
+    private Expression expression;
+
+    private List<CatchBlock> catchBlocks;
+    private ExecutableScript finallyBlock;
+    private ExecutableScript subSequence;
+
     public void setIfTest(Expression ifTest) {
-        _ifTest = ifTest;
+        this.ifTest = ifTest;
     }
 
-    public void setIfBlock(ExecutableStatement ifBlock) {
-        _ifBlock = ifBlock;
+    public void setIfStatement(ExecutableStatement ifStatement) {
+        this.ifStatement = ifStatement;
     }
 
-    public void setElseBlock(ExecutableStatement elseBlock) {
-        _elseBlock = elseBlock;
+    public void setElseStatement(ExecutableStatement elseStatement) {
+        this.elseStatement = elseStatement;
     }
 
     public void setAssignment(String assignmentIdentifier) {
-        _assignmentIdentifier = assignmentIdentifier;
+        this.assignmentIdentifier = assignmentIdentifier;
     }
 
     public String getAssignment() {
-        return _assignmentIdentifier;
+        return assignmentIdentifier;
     }
 
     public void setExpression(Expression expression) {
-        _expression = expression;
+        this.expression = expression;
     }
 
-    public Expression getExpression() { return _expression; }
+    public Expression getExpression() { return expression; }
 
     public void setCatchBlocks(List<CatchBlock> catchBlocks) {
-        _catchBlocks = catchBlocks;
+        this.catchBlocks = catchBlocks;
     }
 
     public void setFinallyBlock(ExecutableScript finallyBlock) {
-        _finallyBlock = finallyBlock;
+        this.finallyBlock = finallyBlock;
     }
 
-    public Object execute(ExecContext exec) throws TwistException {
+    public Object execute(ScriptContext exec) throws TwistException {
         return _executeStatement(exec);
     }
 
@@ -51,42 +62,42 @@ public class ExecutableStatement implements Serializable {
     @Override
     public String toString() {
         StringBuilder tmp = new StringBuilder();
-        if (_ifTest != null) {
+        if (ifTest != null) {
             tmp.append("if (");
-            tmp.append(_ifTest);
+            tmp.append(ifTest);
             tmp.append(") ");
-            tmp.append(_ifBlock);
-            if (_elseBlock != null) {
-                tmp.append(" ELSE ");
-                tmp.append(_elseBlock);
+            tmp.append(ifStatement);
+            if (elseStatement != null) {
+                tmp.append(" else ");
+                tmp.append(elseStatement);
             }
         }
 
         else {
-            if ((_catchBlocks != null && _catchBlocks.size() != 0)
-                    || _finallyBlock != null) {
+            if ((catchBlocks != null && catchBlocks.size() != 0)
+                    || finallyBlock != null) {
                 tmp.append("try {");
-                tmp.append(_subSequence);
+                tmp.append(subSequence);
                 tmp.append('}');
-                if (_catchBlocks != null) {
-                    for (CatchBlock cblock : _catchBlocks) {
+                if (catchBlocks != null) {
+                    for (CatchBlock cblock : catchBlocks) {
                         tmp.append(cblock);
                     }
                 }
-                if (_finallyBlock != null) {
+                if (finallyBlock != null) {
                     tmp.append("finally");
-                    tmp.append(_finallyBlock);
+                    tmp.append(finallyBlock);
                 }
             }
             else {
-                if (_subSequence != null) {
-                    tmp.append(_subSequence);
+                if (subSequence != null) {
+                    tmp.append(subSequence);
                 }
                 else {
-                    if (_assignmentIdentifier != null) {
-                        tmp.append(_assignmentIdentifier).append(" = ");
+                    if (assignmentIdentifier != null) {
+                        tmp.append(assignmentIdentifier).append(" = ");
                     }
-                    tmp.append(_expression).append(";");
+                    tmp.append(expression).append(";");
                 }
             }
         }
@@ -95,17 +106,17 @@ public class ExecutableStatement implements Serializable {
     }
 
 
-    private Object _executeStatement(ExecContext exec) throws TwistException {
-        if (_ifTest != null) {
-            exec.debug("if (" + _ifTest + ") ... ");
-            Object testValue = _ifTest.evaluate(exec);
+    private Object _executeStatement(ScriptContext exec) throws TwistException {
+        if (ifTest != null) {
+            exec.debug("if (" + ifTest + ") ... ");
+            Object testValue = ifTest.evaluate(exec);
             if (ValueUtils.asBoolean(testValue)) {
                 exec.debug("If-test passed - executing if block");
-                _ifBlock.execute(exec);
+                ifStatement.execute(exec);
             }
-            else if (_elseBlock != null) {
+            else if (elseStatement != null) {
                 exec.debug("If-test failed - executing else block");
-                _elseBlock.execute(exec);
+                elseStatement.execute(exec);
             }
             else {
                 exec.debug("If-test failed - no else block to execute");
@@ -115,14 +126,14 @@ public class ExecutableStatement implements Serializable {
             return null;
         }
 
-        if (_subSequence != null) {
+        if (subSequence != null) {
             try {
-                return _subSequence.execute(exec, true);
+                return subSequence.execute(exec, true);
             } catch (Exception e) {
-                if (_catchBlocks != null) {
+                if (catchBlocks != null) {
                     // If we're set up to catch errors, do so.
                     String exceptionClassName = e.getClass().getTypeName();
-                    for (CatchBlock catchBlock : _catchBlocks) {
+                    for (CatchBlock catchBlock : catchBlocks) {
 
                         boolean matches = exceptionClassName.equals(catchBlock.getTypeName());
 
@@ -150,17 +161,17 @@ public class ExecutableStatement implements Serializable {
                 // original exception out.
                 throw e;
             } finally {
-                if (_finallyBlock != null) {
+                if (finallyBlock != null) {
                     exec.debug("Executing finally block...");
-                    _finallyBlock.execute(exec, true);
+                    finallyBlock.execute(exec, true);
                 }
             }
         }
         else {
-            if (_expression != null) {
-                Object value = _expression.evaluate(exec);
-                if (_assignmentIdentifier != null) {
-                    exec.setVariable(_assignmentIdentifier, value);
+            if (expression != null) {
+                Object value = expression.evaluate(exec);
+                if (assignmentIdentifier != null) {
+                    exec.setVariable(assignmentIdentifier, value);
                 }
                 return value;
             }
@@ -168,18 +179,7 @@ public class ExecutableStatement implements Serializable {
         return null;
     }
 
-    private Expression _ifTest;
-
-    private ExecutableStatement _ifBlock;
-    private ExecutableStatement _elseBlock;
-    private String _assignmentIdentifier;
-    private Expression _expression;
-
-    private List<CatchBlock> _catchBlocks;
-    private ExecutableScript _finallyBlock;
-    private ExecutableScript _subSequence;
-
     public void setSubSequence(ExecutableScript subSequence) {
-        _subSequence = subSequence;
+        this.subSequence = subSequence;
     }
 }

@@ -1,13 +1,13 @@
 package com.inksetter.twist.expression;
 
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.EvalContext;
 
 public class DoubleLiteral implements Expression {
     public DoubleLiteral(Double value) {
         _value = value;
     }
 
-    public Double evaluate(ExecContext ctx) {
+    public Double evaluate(EvalContext ctx) {
         return _value;
     }
 

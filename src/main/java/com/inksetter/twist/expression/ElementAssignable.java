@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.ScriptContext;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -20,7 +20,7 @@ public class ElementAssignable implements Assignable {
     }
 
     @Override
-    public Object assignValue(ExecContext exec, Object value) throws TwistException {
+    public Object assignValue(ScriptContext exec, Object value) throws TwistException {
         Object obj = target.evaluate(exec);
 
         if (obj == null) {

@@ -12,7 +12,6 @@ import com.inksetter.twist.expression.operators.arith.*;
 import com.inksetter.twist.expression.operators.compare.*;
 
 import java.math.BigInteger;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,25 +22,26 @@ import java.util.Map;
  * and produces an executable CommandSequence tree.
  */
 public class TwistParser {
+    protected final TwistLexer scan;
 
     public TwistParser(CharSequence script) {
-        _scan = new TwistLexer(script);
+        scan = new TwistLexer(script);
     }
     
     public ExecutableScript parseScript() throws TwistParseException {
-        _scan.next();
+        scan.next();
         
         ExecutableScript seq = buildScript();
         
-        if (_scan.tokenType() != TwistTokenType.END) {
-            throw new TwistParseException(_scan.getLine() + 1, _scan.getLinePos() + 1, "Unexpected token: " + _scan.current());
+        if (scan.tokenType() != TwistTokenType.END) {
+            throw new TwistParseException(scan.getLine() + 1, scan.getLinePos() + 1, "Unexpected token: " + scan.current());
         }
 
         return seq;
     }
 
     public Expression parseExpression() throws TwistParseException{
-        _scan.next();
+        scan.next();
         return buildFullExpression();
     }
     
@@ -55,15 +55,15 @@ public class TwistParser {
         ExecutableStatement statement = buildStatement();
         sequence.addStatement(statement);
         
-        while (_scan.tokenType() == TwistTokenType.SEMICOLON || _scan.current().getLeadingWhitespace().contains("\n")) {
+        while (scan.tokenType() == TwistTokenType.SEMICOLON || scan.current().getLeadingWhitespace().contains("\n")) {
             // Skip the semicolon. Whitespace rules will take care of the newline end of statement.
-            if (_scan.tokenType() == TwistTokenType.SEMICOLON) {
-                _scan.next();
+            if (scan.tokenType() == TwistTokenType.SEMICOLON) {
+                scan.next();
             }
 
             // Special case -- if someone ends a command sequence with a semicolon, check for reasonable
             // end-of-sequence characters.
-            if (_scan.tokenType() == TwistTokenType.CLOSE_BRACE || _scan.tokenType() == TwistTokenType.END) {
+            if (scan.tokenType() == TwistTokenType.CLOSE_BRACE || scan.tokenType() == TwistTokenType.END) {
                 break;
             }
 
@@ -75,76 +75,76 @@ public class TwistParser {
     }
     
     protected Expression buildIfExpression() throws TwistParseException {
-        _scan.next();
-        if (_scan.tokenType() != TwistTokenType.OPEN_PAREN) {
+        scan.next();
+        if (scan.tokenType() != TwistTokenType.OPEN_PAREN) {
             throw parseException("(");
         }
         
-        _scan.next();
+        scan.next();
         return buildFullExpression();
     }
     
     protected ExecutableStatement buildStatement() throws TwistParseException {
         ExecutableStatement stmt = new ExecutableStatement();
 
-        if (_scan.tokenType() == TwistTokenType.IF) {
+        if (scan.tokenType() == TwistTokenType.IF) {
             stmt.setIfTest(buildIfExpression());
 
-            if (_scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+            if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
                 throw parseException(")");
             }
-            _scan.next();
+            scan.next();
 
-            stmt.setIfBlock(buildStatement());
+            stmt.setIfStatement(buildStatement());
 
-            if (_scan.tokenType() == TwistTokenType.ELSE) {
-                _scan.next();
-                stmt.setElseBlock(buildStatement());
+            if (scan.tokenType() == TwistTokenType.ELSE) {
+                scan.next();
+                stmt.setElseStatement(buildStatement());
             }
         }
-        else if (_scan.tokenType() == TwistTokenType.TRY) {
-            _scan.next();
+        else if (scan.tokenType() == TwistTokenType.TRY) {
+            scan.next();
 
             // We expect braces here, but we want this to be
-            if (_scan.tokenType() != TwistTokenType.OPEN_BRACE) {
+            if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
                 throw parseException("{");
             }
 
             // Don't scan the brace.  Let the main block parser do that.
             stmt.setSubSequence(buildSubSequence());
             stmt.setCatchBlocks(buildCatchBlocks());
-            if (_scan.tokenType() == TwistTokenType.FINALLY) {
+            if (scan.tokenType() == TwistTokenType.FINALLY) {
                 // Scan past the FINALLY keyword
-                _scan.next();
+                scan.next();
                 stmt.setFinallyBlock(buildSubSequence());
             }
         }
-        else if (_scan.tokenType() == TwistTokenType.FOR) {
+        else if (scan.tokenType() == TwistTokenType.FOR) {
 //            stmt.setForSequence(buildForSequence());
         }
         else {
-            if (_scan.tokenType() == TwistTokenType.OPEN_BRACE) {
+            if (scan.tokenType() == TwistTokenType.OPEN_BRACE) {
                 stmt.setSubSequence(buildSubSequence());
             }
             else {
-                if (_scan.tokenType() == TwistTokenType.IDENTIFIER) {
+                if (scan.tokenType() == TwistTokenType.IDENTIFIER) {
                     String identifier = getIdentifier("NAME");
-                    TwistLexer.TwistToken save = _scan.current();
-                    _scan.next();
-                    while (_scan.tokenType() == TwistTokenType.DOT) {
-                        _scan.next();
-                        if (_scan.tokenType() == TwistTokenType.IDENTIFIER) {
+                    TwistLexer.TwistToken save = scan.current();
+                    scan.next();
+                    while (scan.tokenType() == TwistTokenType.DOT) {
+                        scan.next();
+                        if (scan.tokenType() == TwistTokenType.IDENTIFIER) {
 
                         }
                     }
 
-                    if (_scan.tokenType() == TwistTokenType.ASSIGNMENT) {
+                    if (scan.tokenType() == TwistTokenType.ASSIGNMENT) {
                         // Assignment
-                        _scan.next();
+                        scan.next();
                         stmt.setAssignment(identifier);
                     }
                     else {
-                        _scan.reset(save);
+                        scan.reset(save);
                     }
                 }
                 stmt.setExpression(buildFullExpression());
@@ -155,49 +155,49 @@ public class TwistParser {
     }
     
     protected List<CatchBlock> buildCatchBlocks() throws TwistParseException {
-        if (_scan.tokenType() != TwistTokenType.CATCH) {
+        if (scan.tokenType() != TwistTokenType.CATCH) {
             return null;
         }
 
         List<CatchBlock> blocks = new ArrayList<>();
         
-        while (_scan.tokenType() == TwistTokenType.CATCH) {
+        while (scan.tokenType() == TwistTokenType.CATCH) {
             CatchBlock block = new CatchBlock();
-            _scan.next();
-            if (_scan.tokenType() != TwistTokenType.OPEN_PAREN) {
+            scan.next();
+            if (scan.tokenType() != TwistTokenType.OPEN_PAREN) {
                 throw parseException("(");
             }
-            _scan.next();
+            scan.next();
 
             block.setType(getIdentifier("TypeName"));
-            _scan.next();
+            scan.next();
 
             block.setVarName(getIdentifier("NAME"));
-            _scan.next();
+            scan.next();
 
-            if (_scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+            if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
                 throw parseException(")");
             }
-            _scan.next();
+            scan.next();
             
-            if (_scan.tokenType() != TwistTokenType.OPEN_BRACE) {
+            if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
                 throw parseException("{");
             }
             
-            _scan.next();
+            scan.next();
             
             // If it is not a close brace then assume it is a sequence
             // If it was a close brace we just leave the sequence empty
             // as in ignoring the exception
-            if (_scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
+            if (scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
                 block.setBlock(buildScript());
             }
             
-            if (_scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
+            if (scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
                 throw parseException("}");
             }
 
-            _scan.next();
+            scan.next();
             
             blocks.add(block);
         }
@@ -205,17 +205,17 @@ public class TwistParser {
     }
     
     protected ExecutableScript buildSubSequence() throws TwistParseException {
-        if (_scan.tokenType() != TwistTokenType.OPEN_BRACE) {
+        if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
             throw parseException("{");
         }
 
-        _scan.next();
+        scan.next();
         ExecutableScript seq = buildScript();
         
-        if (_scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
+        if (scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
             throw parseException("}");
         }
-        _scan.next();
+        scan.next();
         
         return seq;
     }
@@ -223,13 +223,13 @@ public class TwistParser {
     protected Expression buildExpressionTerm() throws TwistParseException {
         Expression expr = buildExpressionFactor();
         do {
-            TwistTokenType operatorToken = _scan.tokenType();
+            TwistTokenType operatorToken = scan.tokenType();
             if (operatorToken == TwistTokenType.PLUS) {
-                _scan.next();
+                scan.next();
                 expr = new PlusExpression(expr, buildExpressionFactor());
             }
             else if (operatorToken == TwistTokenType.MINUS) {
-                _scan.next();
+                scan.next();
                 expr = new MinusExpression(expr, buildExpressionFactor());
             }
             else {
@@ -242,45 +242,45 @@ public class TwistParser {
     
     protected Expression buildLogicalExpression() throws TwistParseException {
         Expression expr = buildExpressionTerm();
-        TwistTokenType oper = _scan.tokenType();
+        TwistTokenType oper = scan.tokenType();
         if (oper == TwistTokenType.EQ) {
-            _scan.next();
+            scan.next();
             expr  = new EqualsExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.NE) {
-            _scan.next();
+            scan.next();
             expr  = new NotEqualsExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.GT) {
-            _scan.next();
+            scan.next();
             expr  = new GreaterThanExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.GE) {
-            _scan.next();
+            scan.next();
             expr  = new GreaterThanOrEqualsExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.LT) {
-            _scan.next();
+            scan.next();
             expr  = new LessThanExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.LE) {
-            _scan.next();
+            scan.next();
             expr  = new LessThanOrEqualsExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.LIKE) {
-            _scan.next();
+            scan.next();
             expr  = new LikeExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.MATCH) {
-            _scan.next();
+            scan.next();
             expr  = new RegexMatchExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.NOT) {
-            _scan.next();
-            if (_scan.tokenType() != TwistTokenType.LIKE) {
+            scan.next();
+            if (scan.tokenType() != TwistTokenType.LIKE) {
                 throw parseException("LIKE");
             }
-            _scan.next();
+            scan.next();
             expr  = new NotLikeExpression(expr, buildExpressionTerm());
         }
 
@@ -290,8 +290,8 @@ public class TwistParser {
     
     protected Expression buildAndExpression() throws TwistParseException {
         Expression expr = buildLogicalExpression();
-        while (_scan.tokenType() == TwistTokenType.AND) {
-            _scan.next();
+        while (scan.tokenType() == TwistTokenType.AND) {
+            scan.next();
             Expression left = expr;
             Expression right = buildLogicalExpression();
             expr = new AndExpression(left, right);
@@ -301,14 +301,14 @@ public class TwistParser {
     }
     protected Expression buildFullExpression() throws TwistParseException {
         Expression expr = buildOrExpression();
-        if (_scan.tokenType() == TwistTokenType.QUESTION) {
-            _scan.next();
+        if (scan.tokenType() == TwistTokenType.QUESTION) {
+            scan.next();
             Expression ternaryIf = expr;
             Expression ternaryThen = buildFullExpression();
-            if (_scan.tokenType() != TwistTokenType.COLON) {
+            if (scan.tokenType() != TwistTokenType.COLON) {
                 throw parseException(":");
             }
-            _scan.next();
+            scan.next();
             Expression ternaryElse = buildFullExpression();
             expr = new TernaryExpression(ternaryIf, ternaryThen, ternaryElse);
         }
@@ -318,8 +318,8 @@ public class TwistParser {
 
     protected Expression buildOrExpression() throws TwistParseException {
         Expression expr = buildAndExpression();
-        while (_scan.tokenType() == TwistTokenType.OR) {
-            _scan.next();
+        while (scan.tokenType() == TwistTokenType.OR) {
+            scan.next();
             Expression left = expr;
             Expression right = buildAndExpression();
             expr = new OrExpression(left, right);
@@ -332,18 +332,18 @@ public class TwistParser {
         Expression expr = buildExpressionValue();
         
         do {
-            TwistTokenType operatorToken = _scan.tokenType();
+            TwistTokenType operatorToken = scan.tokenType();
             
             if (operatorToken == TwistTokenType.STAR) {
-                _scan.next();
+                scan.next();
                 expr = new MultiplyExpression(expr, buildExpressionValue());
             }
             else if (operatorToken == TwistTokenType.SLASH) {
-                _scan.next();
+                scan.next();
                 expr = new DivisionExpression(expr, buildExpressionValue());
             }
             else if (operatorToken == TwistTokenType.PERCENT) {
-                _scan.next();
+                scan.next();
                 expr = new ModExpression(expr, buildExpressionValue());
             }
             else {
@@ -357,15 +357,15 @@ public class TwistParser {
     
     protected Expression buildExpressionValue() throws TwistParseException {
         Expression expr = buildExpressionPossibleValue();
-        while (_scan.tokenType() == TwistTokenType.DOT || _scan.tokenType() == TwistTokenType.OPEN_BRACKET) {
-            if (_scan.tokenType() == TwistTokenType.DOT) {
-                _scan.next();
-                if (_scan.tokenType() != TwistTokenType.IDENTIFIER) {
+        while (scan.tokenType() == TwistTokenType.DOT || scan.tokenType() == TwistTokenType.OPEN_BRACKET) {
+            if (scan.tokenType() == TwistTokenType.DOT) {
+                scan.next();
+                if (scan.tokenType() != TwistTokenType.IDENTIFIER) {
                     throw parseException("identifier");
                 }
-                String identifier = _scan.current().getValue();
-                _scan.next();
-                if (_scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+                String identifier = scan.current().getValue();
+                scan.next();
+                if (scan.tokenType() == TwistTokenType.OPEN_PAREN) {
                     List<Expression> methodArgs = getFunctionArgs();
                     expr = new MethodCallExpression(expr, identifier, methodArgs);
                 }
@@ -374,12 +374,12 @@ public class TwistParser {
                 }
             }
             else {
-                _scan.next();
+                scan.next();
                 Expression element = buildFullExpression();
-                if (_scan.tokenType() != TwistTokenType.CLOSE_BRACKET) {
+                if (scan.tokenType() != TwistTokenType.CLOSE_BRACKET) {
                     throw parseException("]");
                 }
-                _scan.next();
+                scan.next();
                 expr = new ElementExpression(expr, element);
             }
         }
@@ -389,38 +389,38 @@ public class TwistParser {
 
     protected Expression buildExpressionPossibleValue() throws TwistParseException {
         boolean isNegative = false;
-        switch (_scan.tokenType()) {
+        switch (scan.tokenType()) {
         case BANG:
-            _scan.next();
+            scan.next();
             return new NotExpression(buildExpressionValue());
         case IDENTIFIER:
-            String identifier = _scan.current().getValue();
-            _scan.next();
-            if (_scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+            String identifier = scan.current().getValue();
+            scan.next();
+            if (scan.tokenType() == TwistTokenType.OPEN_PAREN) {
                 return buildFunctionExpression(identifier);
             }
             else {
                 return new ReferenceExpression(identifier);
             }
         case OPEN_PAREN:
-            _scan.next();
+            scan.next();
             Expression subExpression = buildFullExpression();
-            if (_scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+            if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
                 throw parseException(")");
             }
-            _scan.next();
+            scan.next();
             return subExpression;
         case MINUS:
             isNegative = true;
             // Pass through
         case PLUS:
-            _scan.next();
-            if (_scan.tokenType() != TwistTokenType.NUMBER) {
+            scan.next();
+            if (scan.tokenType() != TwistTokenType.NUMBER) {
                 throw parseException("<NUMBER>");
             }
             // Pass through
         case NUMBER:
-            String numericValue = _scan.current().getValue();
+            String numericValue = scan.current().getValue();
             if (isNegative) numericValue = "-" + numericValue;
             Expression numericExpression;
             try {
@@ -448,26 +448,26 @@ public class TwistParser {
                 throw parseException("NUMERIC");
             }
             
-            _scan.next();
+            scan.next();
             
             return numericExpression;
 
         case SINGLE_STRING:
         case DOUBLE_STRING:
-            String unquoted = _scan.current().getValue();
-            _scan.next();
+            String unquoted = scan.current().getValue();
+            scan.next();
             return new StringLiteral(dequote(unquoted));
             
         case NULL_TOKEN:
-            _scan.next();
+            scan.next();
             return new LiteralExpression(TwistDataType.STRING, null);
 
         case TRUE:
-            _scan.next();
+            scan.next();
             return new LiteralExpression(TwistDataType.BOOLEAN, Boolean.TRUE);
 
         case FALSE:
-            _scan.next();
+            scan.next();
             return new LiteralExpression(TwistDataType.BOOLEAN, Boolean.FALSE);
         case OPEN_BRACE:
             return buildJsonObject();
@@ -480,60 +480,60 @@ public class TwistParser {
     }
 
     protected Expression buildJsonObject() throws TwistParseException {
-        _scan.next();
+        scan.next();
         Map<String, Expression> object = new LinkedHashMap<>();
         while (true) {
             String fieldName;
-            switch (_scan.tokenType()) {
+            switch (scan.tokenType()) {
                 case SINGLE_STRING:
                 case DOUBLE_STRING:
-                    String unquoted = _scan.current().getValue();
+                    String unquoted = scan.current().getValue();
                     fieldName = dequote(unquoted);
                     break;
                 case IDENTIFIER:
-                    fieldName = _scan.current().getValue();
+                    fieldName = scan.current().getValue();
                     break;
                 default:
                     throw parseException("field");
             }
-            _scan.next();
-            if (_scan.tokenType() != TwistTokenType.COLON) {
+            scan.next();
+            if (scan.tokenType() != TwistTokenType.COLON) {
                 throw parseException("colon");
             }
-            _scan.next();
+            scan.next();
             Expression value = buildFullExpression();
             object.put(fieldName, value);
 
-            if (_scan.tokenType() == TwistTokenType.CLOSE_BRACE) {
-                _scan.next();
+            if (scan.tokenType() == TwistTokenType.CLOSE_BRACE) {
+                scan.next();
                 break;
             }
 
-            if (_scan.tokenType() != TwistTokenType.COMMA) {
+            if (scan.tokenType() != TwistTokenType.COMMA) {
                 throw parseException("comma");
             }
 
             // Skip the comma;
-            _scan.next();
+            scan.next();
         }
         return new ObjectExpression(object);
     }
     protected Expression buildJsonArray() throws TwistParseException {
-        _scan.next();
+        scan.next();
         List<Expression> array = new ArrayList<>();
         while (true) {
             Expression value = buildFullExpression();
             array.add(value);
 
-            if (_scan.tokenType() == TwistTokenType.CLOSE_BRACKET) {
-                _scan.next();
+            if (scan.tokenType() == TwistTokenType.CLOSE_BRACKET) {
+                scan.next();
                 break;
             }
 
-            if (_scan.tokenType() != TwistTokenType.COMMA) {
+            if (scan.tokenType() != TwistTokenType.COMMA) {
                 throw parseException("comma");
             }
-            _scan.next();
+            scan.next();
         }
         return new ArrayExpression(array);
     }
@@ -549,18 +549,18 @@ public class TwistParser {
     private List<Expression> getFunctionArgs() throws TwistParseException {
         List<Expression> functionArgs = new ArrayList<>();
 
-        if (_scan.tokenType() == TwistTokenType.OPEN_PAREN) {
-            _scan.next();
-            while (_scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+        if (scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+            scan.next();
+            while (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
                 functionArgs.add(buildFullExpression());
-                if (_scan.tokenType() == TwistTokenType.COMMA) {
-                    _scan.next();
+                if (scan.tokenType() == TwistTokenType.COMMA) {
+                    scan.next();
                 }
-                else if (_scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+                else if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
                     throw parseException(")");
                 }
             }
-            _scan.next();
+            scan.next();
         }
         return functionArgs;
     }
@@ -589,17 +589,16 @@ public class TwistParser {
     }
 
     protected String getIdentifier(String expect) throws TwistParseException {
-        if (_scan.tokenType() == TwistTokenType.IDENTIFIER) {
-            return _scan.current().getValue();
+        if (scan.tokenType() == TwistTokenType.IDENTIFIER) {
+            return scan.current().getValue();
         }
 
         throw parseException(expect);
     }
     
     protected TwistParseException parseException(String expected) {
-        return new TwistParseException(_scan.getLine() + 1, _scan.getLinePos() + 1,
-                "Expected: " + expected + ", got " + _scan.current());
+        return new TwistParseException(scan.getLine() + 1, scan.getLinePos() + 1,
+                "Expected: " + expected + ", got " + scan.current());
     }
 
-    protected final TwistLexer _scan;
 }

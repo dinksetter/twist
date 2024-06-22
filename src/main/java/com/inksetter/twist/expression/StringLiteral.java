@@ -1,13 +1,13 @@
 package com.inksetter.twist.expression;
 
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.EvalContext;
 
 public class StringLiteral implements Expression {
     public StringLiteral(String value) {
         _value = value;
     }
 
-    public String evaluate(ExecContext ctx) {
+    public String evaluate(EvalContext ctx) {
         return _value;
     }
 

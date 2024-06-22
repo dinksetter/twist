@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
+import com.inksetter.twist.EvalContext;
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.ExecContext;
 import com.inksetter.twist.expression.function.*;
 
 import java.util.HashMap;
@@ -28,7 +28,7 @@ public class FunctionExpression implements Expression {
         _function = function;
     }
     
-    public Object evaluate(ExecContext ctx) throws TwistException {
+    public Object evaluate(EvalContext ctx) throws TwistException {
         return _function.evaluate(ctx, _args);
     }
     

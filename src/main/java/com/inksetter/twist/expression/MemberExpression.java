@@ -1,15 +1,10 @@
 package com.inksetter.twist.expression;
 
+import com.inksetter.twist.EvalContext;
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.ExecContext;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Map;
 
 public class MemberExpression implements Expression {
@@ -20,7 +15,7 @@ public class MemberExpression implements Expression {
     }
 
     @Override
-    public Object evaluate(ExecContext ctx) throws TwistException {
+    public Object evaluate(EvalContext ctx) throws TwistException {
         Object obj = _target.evaluate(ctx);
         if (obj == null) {
             throw new NullValueException(_target.toString());

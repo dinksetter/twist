@@ -1,5 +1,6 @@
 package com.inksetter.twist.exec;
 
+import com.inksetter.twist.ScriptContext;
 import com.inksetter.twist.TwistException;
 
 import java.io.Serializable;
@@ -8,20 +9,22 @@ import java.util.Iterator;
 import java.util.List;
 
 public class ExecutableScript implements Serializable {
+    private final List<ExecutableStatement> statements = new ArrayList<>();
+    private static final long serialVersionUID = 6843629792467515246L;
 
     public List<ExecutableStatement> getStatements() {
-        return _statements;
+        return statements;
     }
     
     public void addStatement(ExecutableStatement statement) {
-        _statements.add(statement);
+        statements.add(statement);
     }
     
-    public Object execute(ExecContext exec, boolean newStack) throws TwistException {
+    public Object execute(ScriptContext exec, boolean newStack) throws TwistException {
         if (newStack) exec.pushStack();
         Object lastValue = null;
         try {
-            for (ExecutableStatement statement : _statements) {
+            for (ExecutableStatement statement : statements) {
                 lastValue = statement.execute(exec);
             }
         }
@@ -35,7 +38,7 @@ public class ExecutableScript implements Serializable {
     @Override
     public String toString() {
         StringBuilder tmp = new StringBuilder("{");
-        for (Iterator<ExecutableStatement> i = _statements.iterator(); i.hasNext();) {
+        for (Iterator<ExecutableStatement> i = statements.iterator(); i.hasNext();) {
             ExecutableStatement stream = i.next();
             tmp.append(stream);
             if (i.hasNext()) tmp.append("; ");
@@ -43,9 +46,5 @@ public class ExecutableScript implements Serializable {
         tmp.append('}');
         return tmp.toString();
     }
-    
 
-    // Private members
-    private final List<ExecutableStatement> _statements = new ArrayList<>();
-    private static final long serialVersionUID = 6843629792467515246L;
 }

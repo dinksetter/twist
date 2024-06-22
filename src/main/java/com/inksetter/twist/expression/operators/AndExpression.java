@@ -2,7 +2,7 @@ package com.inksetter.twist.expression.operators;
 
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.exec.ExecContext;
+import com.inksetter.twist.EvalContext;
 import com.inksetter.twist.expression.Expression;
 
 public class AndExpression implements Expression {
@@ -11,7 +11,7 @@ public class AndExpression implements Expression {
         _right = right;
     }
     
-    public Object evaluate(ExecContext ctx) throws TwistException {
+    public Object evaluate(EvalContext ctx) throws TwistException {
         Object leftValue = _left.evaluate(ctx);
         boolean result;
         
