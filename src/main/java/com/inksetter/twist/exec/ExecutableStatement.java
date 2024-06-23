@@ -55,7 +55,7 @@ public class ExecutableStatement implements Serializable {
     }
 
     public Object execute(ScriptContext exec) throws TwistException {
-        return _executeStatement(exec);
+        return executeStatement(exec);
     }
 
     // @see java.lang.Object#toString()
@@ -106,7 +106,7 @@ public class ExecutableStatement implements Serializable {
     }
 
 
-    private Object _executeStatement(ScriptContext exec) throws TwistException {
+    private Object executeStatement(ScriptContext exec) throws TwistException {
         if (ifTest != null) {
             exec.debug("if (" + ifTest + ") ... ");
             Object testValue = ifTest.evaluate(exec);

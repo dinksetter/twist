@@ -22,7 +22,12 @@ public abstract class BaseFunction implements TwistFunction {
         
         return invoke(ctx, argValues);
     }
-    
+
+    @Override
+    public void validateArgs(List<Expression> args) throws FunctionArgumentException {
+        // do nothing.
+    }
+
     /**
      * Invokes the function implementation with all arguments evaluated.
      * @param ctx The <code>ServerContext</code> to use for execution of the
@@ -34,7 +39,4 @@ public abstract class BaseFunction implements TwistFunction {
      */
     protected abstract Object invoke(EvalContext ctx, List<Object> argValues) throws TwistException;
 
-    protected void validateArgs(List<Expression> args) throws TwistException {
-        // do nothing.
-    }
 }

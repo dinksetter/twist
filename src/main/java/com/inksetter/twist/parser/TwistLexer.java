@@ -9,12 +9,35 @@ import java.util.*;
  * @version $Revision: 283720 $
  */
 public class TwistLexer {
-    
+    private final CharSequence in;
+    private final int length;
+    private int pos;
+    private int line;
+    private int linePos;
+    private int begin;
+    private int startOfToken;
+    private TwistToken currentToken;
+
+    private final static Map<String, TwistTokenType> RESERVED = new HashMap<>();
+
+    static {
+        RESERVED.put("if", TwistTokenType.IF);
+        RESERVED.put("else", TwistTokenType.ELSE);
+        RESERVED.put("not", TwistTokenType.NOT);
+        RESERVED.put("like", TwistTokenType.LIKE);
+        RESERVED.put("for", TwistTokenType.FOR);
+        RESERVED.put("try", TwistTokenType.TRY);
+        RESERVED.put("true", TwistTokenType.TRUE);
+        RESERVED.put("false", TwistTokenType.FALSE);
+        RESERVED.put("catch", TwistTokenType.CATCH);
+        RESERVED.put("finally", TwistTokenType.FINALLY);
+    }
+
     public TwistLexer(CharSequence in) {
-        _in = in;
-        _length = in.length();
-        _pos = 0;
-        _line = 0;
+        this.in = in;
+        length = in.length();
+        pos = 0;
+        line = 0;
     }
     
     /**
@@ -26,15 +49,15 @@ public class TwistLexer {
         }
         
         public String getValue() {
-            return _in.subSequence(_beginToken, _end).toString();
+            return in.subSequence(_beginToken, _end).toString();
         }
         
         public String toString() {
-            return _in.subSequence(_beginWhitespace, _end).toString();
+            return in.subSequence(_beginWhitespace, _end).toString();
         }
         
         public String getLeadingWhitespace() {
-            return _in.subSequence(_beginWhitespace, _beginToken).toString();
+            return in.subSequence(_beginWhitespace, _beginToken).toString();
         }
         
         //
@@ -44,7 +67,7 @@ public class TwistLexer {
             _type = type;
             _beginToken = beginToken;
             _beginWhitespace = beginWhitespace;
-            _end = _pos;
+            _end = pos;
         }
         
         private final TwistTokenType _type;
@@ -54,8 +77,8 @@ public class TwistLexer {
     }
 
     public void reset(TwistToken token) {
-        _currentToken = token;
-        _pos = token._end;
+        currentToken = token;
+        pos = token._end;
     }
     
     /**
@@ -63,7 +86,7 @@ public class TwistLexer {
      * @return
      */
     public TwistToken current() {
-        return _currentToken;
+        return currentToken;
     }
     
     /**
@@ -72,7 +95,7 @@ public class TwistLexer {
      * @return
      */
     public TwistTokenType tokenType() {
-        return _currentToken._type;
+        return currentToken._type;
     }
 
     /**
@@ -80,7 +103,7 @@ public class TwistLexer {
      * @return
      */
     public int getLine() {
-        return _line;
+        return line;
     }
     
     /**
@@ -88,7 +111,7 @@ public class TwistLexer {
      * @return
      */
     public int getLinePos() {
-        return _linePos - (_pos - _currentToken._beginToken);
+        return linePos - (pos - currentToken._beginToken);
     }
     
     /**
@@ -99,10 +122,10 @@ public class TwistLexer {
      */
     public TwistToken next() throws TwistLexException {
         do {
-            _currentToken = _nextToken();
-        } while (_currentToken._type == TwistTokenType.COMMENT);
+            currentToken = nextToken();
+        } while (currentToken._type == TwistTokenType.COMMENT);
 
-        return _currentToken;
+        return currentToken;
     }
 
     /**
@@ -119,7 +142,7 @@ public class TwistLexer {
         List<TwistToken> tokens = new ArrayList<>();
         TwistToken token;
         do {
-            token = _nextToken();
+            token = nextToken();
             tokens.add(token);
         } while (token.getType() != TwistTokenType.END);
         
@@ -164,217 +187,227 @@ public class TwistLexer {
      * @throws TwistLexException if there was a problem parsing the SQL
      * statement.
      */
-    private TwistToken _nextToken() throws TwistLexException {
+    private TwistToken nextToken() throws TwistLexException {
         // Keep track of where we started
-        _begin = _pos;
-        _skipWhitespace();
+        begin = pos;
+        skipWhitespace();
         
         // If we're done, mark the end of the statement
-        if (!_hasNext()) {
-            return new TwistToken(TwistTokenType.END, _begin, _pos);
+        if (!hasNext()) {
+            return new TwistToken(TwistTokenType.END, begin, pos);
         }
         
         // We need to keep track of where this token's significant text began
-        _startOfToken = _pos;
+        startOfToken = pos;
         
         // Read the first character
-        char c = _nextChar();
+        char c = nextChar();
         
         if (Character.isDigit(c)) {
-            return _readNumeric(c);
+            return readNumeric(c);
         }
         else if (Character.isLetter(c) || c == '_') {
-            return _readIdentifier();
+            return readIdentifier();
         }
         else {
             switch (c) {
             case '\'':
             case '"':
-                return new TwistToken(_readStringLiteral(c), _begin, _startOfToken);
+                return new TwistToken(readStringLiteral(c), begin, startOfToken);
             case '.':
-                return new TwistToken(TwistTokenType.DOT, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.DOT, begin, startOfToken);
             case ';':
-                return new TwistToken(TwistTokenType.SEMICOLON, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.SEMICOLON, begin, startOfToken);
             case '|': 
-                if (_hasNext() && _peekChar() == '|') {
+                if (hasNext() && peekChar() == '|') {
                     // This is to go over the | character
-                    _nextChar();
-                    return new TwistToken(TwistTokenType.OR, _begin, _startOfToken);
+                    nextChar();
+                    return new TwistToken(TwistTokenType.OR, begin, startOfToken);
                 }
                 else {
-                    throw new TwistLexException(_line + 1, _linePos + 1, "Unrecognized identifier: " + c);
+                    throw new TwistLexException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
                 }
             case '&':
-                if (_hasNext() && _peekChar() == '&') {
+                if (hasNext() && peekChar() == '&') {
                     // This is to go over the & character
-                    _nextChar();
-                    return new TwistToken(TwistTokenType.AND, _begin, _startOfToken);
+                    nextChar();
+                    return new TwistToken(TwistTokenType.AND, begin, startOfToken);
                 }
                 else {
-                    throw new TwistLexException(_line + 1, _linePos + 1, "Unrecognized identifier: " + c);
+                    throw new TwistLexException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
                 }
             case '(':
-                return new TwistToken(TwistTokenType.OPEN_PAREN, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.OPEN_PAREN, begin, startOfToken);
             case ')':
-                return new TwistToken(TwistTokenType.CLOSE_PAREN, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.CLOSE_PAREN, begin, startOfToken);
             case '{':
-                return new TwistToken(TwistTokenType.OPEN_BRACE, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.OPEN_BRACE, begin, startOfToken);
             case '}':
-                return new TwistToken(TwistTokenType.CLOSE_BRACE, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.CLOSE_BRACE, begin, startOfToken);
             case '[':
-                return new TwistToken(TwistTokenType.OPEN_BRACKET, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.OPEN_BRACKET, begin, startOfToken);
             case ']':
-                return new TwistToken(TwistTokenType.CLOSE_BRACKET, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.CLOSE_BRACKET, begin, startOfToken);
             case '*':
-                return new TwistToken(TwistTokenType.STAR, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.STAR, begin, startOfToken);
             case '+':
-                return new TwistToken(TwistTokenType.PLUS, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.PLUS, begin, startOfToken);
             case '-':
-                return new TwistToken(TwistTokenType.MINUS, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.MINUS, begin, startOfToken);
             case '?':
-                return new TwistToken(TwistTokenType.QUESTION, _begin, _startOfToken);
-            case ':':
-                return new TwistToken(TwistTokenType.COLON, _begin, _startOfToken);
-            case '/':
-                if (_hasNext() && (_peekChar() == '*')) {
-                    // This is to go over the * character
-                    _nextChar();
-                    do {
-                        c = _nextChar();
-                    } while (c != '*' || _peekChar() != '/');
-                    // This is to go over the / character
-                    _nextChar();
-                    return new TwistToken(TwistTokenType.COMMENT, _begin, _startOfToken);
+                if (hasNext() && peekChar() == ':') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.ELVIS, begin, startOfToken);
                 }
                 else {
-                    return new TwistToken(TwistTokenType.SLASH, _begin, _startOfToken);
+                    return new TwistToken(TwistTokenType.QUESTION, begin, startOfToken);
+                }
+            case ':':
+                return new TwistToken(TwistTokenType.COLON, begin, startOfToken);
+            case '/':
+                if (hasNext() && (peekChar() == '*')) {
+                    // This is to go over the * character
+                    nextChar();
+                    do {
+                        c = nextChar();
+                    } while (c != '*' || peekChar() != '/');
+                    // This is to go over the / character
+                    nextChar();
+                    return new TwistToken(TwistTokenType.COMMENT, begin, startOfToken);
+                }
+                else {
+                    return new TwistToken(TwistTokenType.SLASH, begin, startOfToken);
                 }
             case '%':
-                return new TwistToken(TwistTokenType.PERCENT, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.PERCENT, begin, startOfToken);
             case ',':
-                return new TwistToken(TwistTokenType.COMMA, _begin, _startOfToken);
+                return new TwistToken(TwistTokenType.COMMA, begin, startOfToken);
             case '=':
-                if (_hasNext() && _peekChar() == '=') {
+                if (hasNext() && peekChar() == '=') {
                     // This is to go over the = character
-                    _nextChar();
-                    return new TwistToken(TwistTokenType.EQ, _begin, _startOfToken);
+                    nextChar();
+                    return new TwistToken(TwistTokenType.EQ, begin, startOfToken);
                 }
-                else if (_hasNext() && _peekChar() == '~') {
+                else if (hasNext() && peekChar() == '~') {
                     // This is to go over the = character
-                    _nextChar();
-                    return new TwistToken(TwistTokenType.MATCH, _begin, _startOfToken);
+                    nextChar();
+                    return new TwistToken(TwistTokenType.MATCH, begin, startOfToken);
                 }
 
                 else {
-                    return new TwistToken(TwistTokenType.ASSIGNMENT, _begin, _startOfToken);
+                    return new TwistToken(TwistTokenType.ASSIGNMENT, begin, startOfToken);
                 }
             case '>':
-                if (_hasNext() && _peekChar() == '=') {
+                if (hasNext() && peekChar() == '=') {
                     // This is to go over the = character
-                    _nextChar();
-                    return new TwistToken(TwistTokenType.GE, _begin, _startOfToken);
+                    nextChar();
+                    return new TwistToken(TwistTokenType.GE, begin, startOfToken);
                 }
                 else {
-                    return new TwistToken(TwistTokenType.GT, _begin, _startOfToken);
+                    return new TwistToken(TwistTokenType.GT, begin, startOfToken);
                 }
             case '<':
-                if (_hasNext() && _peekChar() == '=') {
+                if (hasNext() && peekChar() == '=') {
                     // This is to go over the = character
-                    _nextChar();
-                    return new TwistToken(TwistTokenType.LE, _begin, _startOfToken);
+                    nextChar();
+                    return new TwistToken(TwistTokenType.LE, begin, startOfToken);
                 }
-                else if (_hasNext() && _peekChar() == '>') {
+                else if (hasNext() && peekChar() == '>') {
                     // This is to go over the > character
-                    _nextChar();
-                    return new TwistToken(TwistTokenType.NE, _begin, _startOfToken);
+                    nextChar();
+                    return new TwistToken(TwistTokenType.NE, begin, startOfToken);
                 }
                 else {
-                    return new TwistToken(TwistTokenType.LT, _begin, _startOfToken);
+                    return new TwistToken(TwistTokenType.LT, begin, startOfToken);
                 }
             case '!':
-                if (_hasNext() && _peekChar() == '=') {
+                if (hasNext() && peekChar() == '=') {
                     // This is to go over the = character
-                    _nextChar();
-                    return new TwistToken(TwistTokenType.NE, _begin, _startOfToken);
+                    nextChar();
+                    return new TwistToken(TwistTokenType.NE, begin, startOfToken);
+                }
+                else if (hasNext() && peekChar() == '~') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.NMATCH, begin, startOfToken);
                 }
                 else {
-                    return new TwistToken(TwistTokenType.BANG, _begin, _startOfToken);
+                    return new TwistToken(TwistTokenType.BANG, begin, startOfToken);
                 }
             default:
-                throw new TwistLexException(_line + 1, _linePos + 1, "Unrecognized identifier: " + c);
+                throw new TwistLexException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
             }
         }
     }
     
-    private TwistToken _readNumeric(char c) throws TwistLexException {
+    private TwistToken readNumeric(char c) throws TwistLexException {
         // If the first character is a plus or minus, skip over it.
         if (c == '+' || c == '-') {
-            _nextChar();
+            nextChar();
         }
         
         // As long as the next character will be a digit, we should include it.
-        while (_hasNext() && Character.isDigit(_peekChar())) {
-            _nextChar();
+        while (hasNext() && Character.isDigit(peekChar())) {
+            nextChar();
         }
         
         // If the next character is a decimal point, continue.
-        if (_hasNext() && _peekChar() == '.' ) {
-            _nextChar();
+        if (hasNext() && peekChar() == '.' ) {
+            nextChar();
         }
         
         // Now we have numbers after the decimal point.       
-        while (_hasNext() && Character.isDigit(_peekChar())) {
-            _nextChar();
+        while (hasNext() && Character.isDigit(peekChar())) {
+            nextChar();
         }
         
         // Scientific notation -- ##.##e[+-]###
-        if (_hasNext() && (_peekChar() == 'e' || _peekChar() == 'E')) {
+        if (hasNext() && (peekChar() == 'e' || peekChar() == 'E')) {
             // We expect another number if we see the exponential notation
-            _nextChar();
+            nextChar();
             
-            if (_peekChar() == '+' || _peekChar() == '-') {
-                _nextChar();
+            if (peekChar() == '+' || peekChar() == '-') {
+                nextChar();
             }
             
-            while (_hasNext() && Character.isDigit(_peekChar())) {
-                _nextChar();
+            while (hasNext() && Character.isDigit(peekChar())) {
+                nextChar();
             }
         }
-        else if (_hasNext() && (Character.isLetter(_peekChar()) || _peekChar() == '_')) {
-            return _readIdentifier();
+        else if (hasNext() && (Character.isLetter(peekChar()) || peekChar() == '_')) {
+            return readIdentifier();
         }
-        return new TwistToken(TwistTokenType.NUMBER, _begin, _startOfToken);
+        return new TwistToken(TwistTokenType.NUMBER, begin, startOfToken);
     }
     
-    private boolean _isValidIdentifier(char c) {
+    private boolean isValidIdentifier(char c) {
         return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')||
                 c == '_' || Character.isDigit(c));
     }
     
-    private TwistToken _readIdentifier() throws TwistLexException {
-        while (_hasNext() && _isValidIdentifier(_peekChar())) {
-             _nextChar();
+    private TwistToken readIdentifier() throws TwistLexException {
+        while (hasNext() && isValidIdentifier(peekChar())) {
+             nextChar();
         }
         
-        String word = _in.subSequence(_startOfToken, _pos).toString();
-        TwistTokenType wordType = _RESERVED.get(word.toLowerCase());
+        String word = in.subSequence(startOfToken, pos).toString();
+        TwistTokenType wordType = RESERVED.get(word.toLowerCase());
         if (wordType == null) {
             wordType = TwistTokenType.IDENTIFIER;
         }
 
-        return new TwistToken(wordType, _begin, _startOfToken);
+        return new TwistToken(wordType, begin, startOfToken);
     }
     
-    private TwistTokenType _readStringLiteral(char c) throws TwistLexException {
+    private TwistTokenType readStringLiteral(char c) throws TwistLexException {
         
         char lookfor = c;
 
         do {
-            c = _nextChar();
+            c = nextChar();
 
-            while (c == lookfor && _hasNext() && _peekChar() == lookfor) {
-                _nextChar();
-                c = _nextChar();
+            while (c == lookfor && hasNext() && peekChar() == lookfor) {
+                nextChar();
+                c = nextChar();
             }
         } while (c != lookfor);
 
@@ -386,59 +419,33 @@ public class TwistLexer {
         }
     }
     
-    private void _skipWhitespace() throws TwistLexException {
-        while (_pos < _length && Character.isWhitespace(_peekChar())) {
-            _nextChar();
+    private void skipWhitespace() throws TwistLexException {
+        while (pos < length && Character.isWhitespace(peekChar())) {
+            nextChar();
         }
     }
     
-    private char _nextChar() throws TwistLexException {
-        if (_pos >= _length) {
-            throw new TwistLexException(_line + 1, _linePos + 1, "Unexpected end of text");
+    private char nextChar() throws TwistLexException {
+        if (pos >= length) {
+            throw new TwistLexException(line + 1, linePos + 1, "Unexpected end of text");
         }
-        _linePos++;
-        char next = _in.charAt(_pos++);
+        linePos++;
+        char next = in.charAt(pos++);
 
         if (next == '\n') {
-            _line++;
-            _linePos = 0;
+            line++;
+            linePos = 0;
         }
         
         return next;
     }
     
-    private char _peekChar() {
-        return _in.charAt(_pos);
+    private char peekChar() {
+        return in.charAt(pos);
     }
     
-    private boolean _hasNext() {
-        return _pos < _length;
+    private boolean hasNext() {
+        return pos < length;
     }
 
-    //
-    // Implementation
-    //
-    private final CharSequence _in;
-    private final int _length;
-    private int _pos;
-    private int _line;
-    private int _linePos;
-    private int _begin;
-    private int _startOfToken;
-    private TwistToken _currentToken;
-    
-    private final static Map<String, TwistTokenType> _RESERVED = new HashMap<>();
-    
-    static {
-        _RESERVED.put("if", TwistTokenType.IF);
-        _RESERVED.put("else", TwistTokenType.ELSE);
-        _RESERVED.put("not", TwistTokenType.NOT);
-        _RESERVED.put("like", TwistTokenType.LIKE);
-        _RESERVED.put("for", TwistTokenType.FOR);
-        _RESERVED.put("try", TwistTokenType.TRY);
-        _RESERVED.put("true", TwistTokenType.TRUE);
-        _RESERVED.put("false", TwistTokenType.FALSE);
-        _RESERVED.put("catch", TwistTokenType.CATCH);
-        _RESERVED.put("finally", TwistTokenType.FINALLY);
-    }
 }

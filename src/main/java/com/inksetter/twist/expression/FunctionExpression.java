@@ -3,7 +3,9 @@ package com.inksetter.twist.expression;
 import com.inksetter.twist.EvalContext;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.expression.function.*;
+import com.inksetter.twist.parser.TwistParseException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,13 @@ public class FunctionExpression implements Expression {
         if (function == null) {
             function = new ExternalFunction(name);
         }
+
+        try {
+            function.validateArgs(args);
+        }
+        catch (FunctionArgumentException e) {
+            throw new TwistParseException()
+        }
         return new FunctionExpression(name, args, function);
     }
     
@@ -29,7 +38,13 @@ public class FunctionExpression implements Expression {
     }
     
     public Object evaluate(EvalContext ctx) throws TwistException {
-        return _function.evaluate(ctx, _args);
+        List<Object> argValues = new ArrayList<>();
+
+        for (Expression arg : _args) {
+            argValues.add(arg.evaluate(ctx));
+        }
+
+        return _function.invoke(ctx, argValues);
     }
     
     // @see java.lang.Object#toString()
@@ -69,7 +84,6 @@ public class FunctionExpression implements Expression {
         _BUILTINS.put("len", new LengthFunction());
         _BUILTINS.put("length", new LengthFunction());
         _BUILTINS.put("sprintf", new SprintfFunction());
-        _BUILTINS.put("ifnull", new IfNullFunction());
         _BUILTINS.put("min", new MinFunction());
         _BUILTINS.put("max", new MaxFunction());
         _BUILTINS.put("substr", new SubstrFunction());

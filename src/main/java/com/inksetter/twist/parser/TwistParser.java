@@ -6,6 +6,7 @@ import com.inksetter.twist.exec.ExecutableStatement;
 import com.inksetter.twist.exec.ExecutableScript;
 import com.inksetter.twist.expression.*;
 import com.inksetter.twist.expression.operators.AndExpression;
+import com.inksetter.twist.expression.operators.IfNullExpression;
 import com.inksetter.twist.expression.operators.NotExpression;
 import com.inksetter.twist.expression.operators.OrExpression;
 import com.inksetter.twist.expression.operators.arith.*;
@@ -301,7 +302,13 @@ public class TwistParser {
     }
     protected Expression buildFullExpression() throws TwistParseException {
         Expression expr = buildOrExpression();
-        if (scan.tokenType() == TwistTokenType.QUESTION) {
+        if (scan.tokenType() == TwistTokenType.ELVIS) {
+            scan.next();
+            Expression testExpr = expr;
+            Expression elseExpr = buildFullExpression();
+            expr = new IfNullExpression(testExpr, elseExpr);
+        }
+        else if (scan.tokenType() == TwistTokenType.QUESTION) {
             scan.next();
             Expression ternaryIf = expr;
             Expression ternaryThen = buildFullExpression();

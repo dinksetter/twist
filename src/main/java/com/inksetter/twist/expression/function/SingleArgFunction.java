@@ -12,7 +12,7 @@ import java.util.List;
 public abstract class SingleArgFunction extends BaseFunction {
 
     @Override
-    protected final void validateArgs(List<Expression> args) throws TwistException {
+    public final void validateArgs(List<Expression> args) throws FunctionArgumentException {
         if (args.size() != 1) {
             throw new FunctionArgumentException("expected single argument");
         }

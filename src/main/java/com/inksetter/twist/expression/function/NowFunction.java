@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class NowFunction extends BaseFunction {
     @Override
-    protected void validateArgs(List<Expression> args) throws TwistException {
+    public void validateArgs(List<Expression> args) throws TwistException {
         if (!args.isEmpty()) {
             throw new FunctionArgumentException("unexpected arguments: " + args);
         }

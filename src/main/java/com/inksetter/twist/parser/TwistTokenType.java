@@ -15,10 +15,10 @@ public enum TwistTokenType {
     OPEN_BRACKET, CLOSE_BRACKET, COMMA,
 
     // operators
-    EQ, NE, LT, GT, LE, GE, MATCH,
+    EQ, NE, LT, GT, LE, GE, MATCH, NMATCH,
     BANG, AND, OR,
     STAR, PLUS, MINUS, SLASH, PERCENT,
-    NOT, LIKE, QUESTION, COLON,
+    NOT, LIKE, QUESTION, COLON, ELVIS,
 
     // reserved words
     NULL_TOKEN,

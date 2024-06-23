@@ -17,13 +17,13 @@ public interface TwistFunction {
      * Call this function. When this method is called, all arguments will have
      * been evaluated. The value of those arguments are passed into the
      * <code>invoke</code> method as the <code>args</code> parameter.
-     * 
-     * @param ctx The <code>ServerContext</code> to use for execution of the
-     *            function, if it needs to get data or execute commands within
-     *            the server execution context.
+     *
      * @param args Arguments to the function call.
      * @return a single value.
      * @throws TwistException if an error occurs.
      */
-    Object evaluate(EvalContext ctx, List<Expression> args) throws TwistException;
+
+    Object invoke(EvalContext ctx, List<Object> args);
+
+    void validateArgs(List<Expression> args) throws FunctionArgumentException;
 }
