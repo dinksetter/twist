@@ -1,6 +1,6 @@
 package com.inksetter.twist.expression.operators.compare;
 
-import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.Expression;
 
 public class NotLikeExpression extends LikeExpression {
     public NotLikeExpression(Expression left, Expression right) {

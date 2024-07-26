@@ -2,7 +2,6 @@ package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.EvalContext;
 
 import java.util.List;
 
@@ -13,7 +12,7 @@ import java.util.List;
 public class SprintfFunction extends BaseFunction {
 
     @Override
-    protected String invoke(EvalContext ctx, List<Object> args) throws TwistException {
+    public String invoke(List<Object> args) throws TwistException {
         if (args.size() < 1) {
             throw new FunctionArgumentException("expected format argument");
         }

@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.operators.arith;
 
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 
 public class DivisionExpression extends AbsractOperExpression {

@@ -1,6 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.EvalContext;
+import com.inksetter.twist.Expression;
 import com.inksetter.twist.TwistException;
 
 import java.beans.BeanInfo;
@@ -33,7 +34,6 @@ public class MethodCallExpression implements Expression {
         }
 
         try {
-
             BeanInfo info = Introspector.getBeanInfo(obj.getClass());
             for (MethodDescriptor desc : info.getMethodDescriptors()) {
                 String methodName = desc.getName();

@@ -2,9 +2,9 @@ package com.inksetter.twist.parser;
 
 import com.inksetter.twist.TwistException;
 
-public class TwistParseException extends TwistException {
+public class ScriptSyntaxException extends TwistException {
 
-    public TwistParseException(int line, int linePos, String detail) {
+    public ScriptSyntaxException(int line, int linePos, String detail) {
         super("Syntax error at line " + line + "." + linePos + ": " + detail);
     }
 }

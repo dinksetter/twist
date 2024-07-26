@@ -1,13 +1,19 @@
 package com.inksetter.twist;
 
+import com.inksetter.twist.exec.ScriptContext;
+
 import java.util.*;
 
-public class BaseScriptContext implements ScriptContext {
+public class SimpleScriptContext implements ScriptContext {
 
     private final Deque<Map<String, Object>> varStack = new LinkedList<>();
 
-    public BaseScriptContext() {
+    public SimpleScriptContext() {
         varStack.addFirst(new LinkedHashMap<>());
+    }
+
+    public SimpleScriptContext(Map<String,Object> initial) {
+        varStack.addFirst(new LinkedHashMap<>(initial));
     }
 
     @Override
@@ -39,16 +45,6 @@ public class BaseScriptContext implements ScriptContext {
             }
         }
         varStack.getFirst().put(name, value);
-    }
-
-    @Override
-    public boolean lookupExternalFunction(String functionName) {
-        return false;
-    }
-
-    @Override
-    public Object invokeExternalFunction(String functionName, List<Object> argValues) {
-        return null;
     }
 
     @Override

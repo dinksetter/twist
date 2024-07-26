@@ -1,10 +1,13 @@
 package com.inksetter.twist.parser;
 
+import com.inksetter.twist.Expression;
+import com.inksetter.twist.Script;
 import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.exec.CatchBlock;
-import com.inksetter.twist.exec.ExecutableStatement;
-import com.inksetter.twist.exec.ExecutableScript;
+import com.inksetter.twist.exec.Statement;
+import com.inksetter.twist.exec.StatementBlock;
 import com.inksetter.twist.expression.*;
+import com.inksetter.twist.expression.function.*;
 import com.inksetter.twist.expression.operators.AndExpression;
 import com.inksetter.twist.expression.operators.IfNullExpression;
 import com.inksetter.twist.expression.operators.NotExpression;
@@ -13,10 +16,7 @@ import com.inksetter.twist.expression.operators.arith.*;
 import com.inksetter.twist.expression.operators.compare.*;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The core command parser for Twist command syntax.  This parser reads string input
@@ -24,24 +24,31 @@ import java.util.Map;
  */
 public class TwistParser {
     protected final TwistLexer scan;
+    private final Map<String, TwistFunction> customFunctions = new HashMap<>();
 
     public TwistParser(CharSequence script) {
-        scan = new TwistLexer(script);
+        this(script, null);
     }
-    
-    public ExecutableScript parseScript() throws TwistParseException {
+    public TwistParser(CharSequence script, Map<String, TwistFunction> functions) {
+        scan = new TwistLexer(script);
+        if (functions != null && !functions.isEmpty()) {
+            customFunctions.putAll(functions);
+        }
+    }
+
+    public Script parseScript() throws ScriptSyntaxException {
         scan.next();
         
-        ExecutableScript seq = buildScript();
+        StatementBlock seq = buildScript();
         
         if (scan.tokenType() != TwistTokenType.END) {
-            throw new TwistParseException(scan.getLine() + 1, scan.getLinePos() + 1, "Unexpected token: " + scan.current());
+            throw new ScriptSyntaxException(scan.getLine() + 1, scan.getLinePos() + 1, "Unexpected token: " + scan.current());
         }
 
         return seq;
     }
 
-    public Expression parseExpression() throws TwistParseException{
+    public Expression parseExpression() throws ScriptSyntaxException {
         scan.next();
         return buildFullExpression();
     }
@@ -50,10 +57,10 @@ public class TwistParser {
     // Implementation
     //
 
-    protected ExecutableScript buildScript() throws TwistParseException {
-        ExecutableScript sequence = new ExecutableScript();
+    protected StatementBlock buildScript() throws ScriptSyntaxException {
+        StatementBlock sequence = new StatementBlock();
         
-        ExecutableStatement statement = buildStatement();
+        Statement statement = buildStatement();
         sequence.addStatement(statement);
         
         while (scan.tokenType() == TwistTokenType.SEMICOLON || scan.current().getLeadingWhitespace().contains("\n")) {
@@ -75,7 +82,7 @@ public class TwistParser {
         return sequence;
     }
     
-    protected Expression buildIfExpression() throws TwistParseException {
+    protected Expression buildIfExpression() throws ScriptSyntaxException {
         scan.next();
         if (scan.tokenType() != TwistTokenType.OPEN_PAREN) {
             throw parseException("(");
@@ -85,8 +92,8 @@ public class TwistParser {
         return buildFullExpression();
     }
     
-    protected ExecutableStatement buildStatement() throws TwistParseException {
-        ExecutableStatement stmt = new ExecutableStatement();
+    protected Statement buildStatement() throws ScriptSyntaxException {
+        Statement stmt = new Statement();
 
         if (scan.tokenType() == TwistTokenType.IF) {
             stmt.setIfTest(buildIfExpression());
@@ -155,7 +162,7 @@ public class TwistParser {
         return stmt;
     }
     
-    protected List<CatchBlock> buildCatchBlocks() throws TwistParseException {
+    protected List<CatchBlock> buildCatchBlocks() throws ScriptSyntaxException {
         if (scan.tokenType() != TwistTokenType.CATCH) {
             return null;
         }
@@ -205,13 +212,13 @@ public class TwistParser {
         return blocks;
     }
     
-    protected ExecutableScript buildSubSequence() throws TwistParseException {
+    protected StatementBlock buildSubSequence() throws ScriptSyntaxException {
         if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
             throw parseException("{");
         }
 
         scan.next();
-        ExecutableScript seq = buildScript();
+        StatementBlock seq = buildScript();
         
         if (scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
             throw parseException("}");
@@ -221,7 +228,7 @@ public class TwistParser {
         return seq;
     }
 
-    protected Expression buildExpressionTerm() throws TwistParseException {
+    protected Expression buildExpressionTerm() throws ScriptSyntaxException {
         Expression expr = buildExpressionFactor();
         do {
             TwistTokenType operatorToken = scan.tokenType();
@@ -241,7 +248,7 @@ public class TwistParser {
         return expr;
     }
     
-    protected Expression buildLogicalExpression() throws TwistParseException {
+    protected Expression buildLogicalExpression() throws ScriptSyntaxException {
         Expression expr = buildExpressionTerm();
         TwistTokenType oper = scan.tokenType();
         if (oper == TwistTokenType.EQ) {
@@ -289,7 +296,7 @@ public class TwistParser {
         return expr;
     }
     
-    protected Expression buildAndExpression() throws TwistParseException {
+    protected Expression buildAndExpression() throws ScriptSyntaxException {
         Expression expr = buildLogicalExpression();
         while (scan.tokenType() == TwistTokenType.AND) {
             scan.next();
@@ -300,7 +307,7 @@ public class TwistParser {
         
         return expr;
     }
-    protected Expression buildFullExpression() throws TwistParseException {
+    protected Expression buildFullExpression() throws ScriptSyntaxException {
         Expression expr = buildOrExpression();
         if (scan.tokenType() == TwistTokenType.ELVIS) {
             scan.next();
@@ -323,7 +330,7 @@ public class TwistParser {
         return expr;
     }
 
-    protected Expression buildOrExpression() throws TwistParseException {
+    protected Expression buildOrExpression() throws ScriptSyntaxException {
         Expression expr = buildAndExpression();
         while (scan.tokenType() == TwistTokenType.OR) {
             scan.next();
@@ -335,7 +342,7 @@ public class TwistParser {
         return expr;
     }
     
-    protected Expression buildExpressionFactor() throws TwistParseException {
+    protected Expression buildExpressionFactor() throws ScriptSyntaxException {
         Expression expr = buildExpressionValue();
         
         do {
@@ -362,7 +369,7 @@ public class TwistParser {
         return expr;
     }
     
-    protected Expression buildExpressionValue() throws TwistParseException {
+    protected Expression buildExpressionValue() throws ScriptSyntaxException {
         Expression expr = buildExpressionPossibleValue();
         while (scan.tokenType() == TwistTokenType.DOT || scan.tokenType() == TwistTokenType.OPEN_BRACKET) {
             if (scan.tokenType() == TwistTokenType.DOT) {
@@ -394,7 +401,7 @@ public class TwistParser {
         return expr;
     }
 
-    protected Expression buildExpressionPossibleValue() throws TwistParseException {
+    protected Expression buildExpressionPossibleValue() throws ScriptSyntaxException {
         boolean isNegative = false;
         switch (scan.tokenType()) {
         case BANG:
@@ -486,7 +493,7 @@ public class TwistParser {
         throw parseException("expression");
     }
 
-    protected Expression buildJsonObject() throws TwistParseException {
+    protected Expression buildJsonObject() throws ScriptSyntaxException {
         scan.next();
         Map<String, Expression> object = new LinkedHashMap<>();
         while (true) {
@@ -525,7 +532,7 @@ public class TwistParser {
         }
         return new ObjectExpression(object);
     }
-    protected Expression buildJsonArray() throws TwistParseException {
+    protected Expression buildJsonArray() throws ScriptSyntaxException {
         scan.next();
         List<Expression> array = new ArrayList<>();
         while (true) {
@@ -546,14 +553,45 @@ public class TwistParser {
     }
 
 
-    protected Expression buildFunctionExpression(String functionName) throws TwistParseException {
+    protected Expression buildFunctionExpression(String functionName) throws ScriptSyntaxException {
         // This method only gets called if parentheses have been seen
         List<Expression> functionArgs = getFunctionArgs();
+        TwistFunction func = customFunctions.get(functionName);
+        if (func == null) {
+            func = _BUILTINS.get(functionName.toLowerCase());
+        }
 
-        return FunctionExpression.chooseFunction(functionName, functionArgs);
+        if (func == null) {
+            throw new ScriptSyntaxException(scan.getLine() + 1, scan.getLinePos() + 1, "invalid function: " + functionName);
+        }
+
+        return new FunctionExpression(functionName, functionArgs, func);
     }
 
-    private List<Expression> getFunctionArgs() throws TwistParseException {
+    private final static Map<String, TwistFunction> _BUILTINS = new HashMap<>();
+    static {
+        _BUILTINS.put("date", new DateFunction());
+        _BUILTINS.put("string", new StringFunction());
+        _BUILTINS.put("int", new IntFunction());
+        _BUILTINS.put("double", new DoubleFunction());
+        _BUILTINS.put("upper", new UpperFunction());
+        _BUILTINS.put("lower", new LowerFunction());
+        _BUILTINS.put("trim", new TrimFunction());
+        _BUILTINS.put("len", new LengthFunction());
+        _BUILTINS.put("length", new LengthFunction());
+        _BUILTINS.put("sprintf", new SprintfFunction());
+        _BUILTINS.put("min", new MinFunction());
+        _BUILTINS.put("max", new MaxFunction());
+        _BUILTINS.put("substr", new SubstrFunction());
+        _BUILTINS.put("json", new JsonFunction());
+        _BUILTINS.put("instr", new IndexOfFunction());
+        _BUILTINS.put("b64decode", new Base64DecodeFunction());
+        _BUILTINS.put("b64encode", new Base64EncodeFunction());
+        _BUILTINS.put("now", new NowFunction());
+        _BUILTINS.put("type", new TypeFunction());
+    }
+
+    private List<Expression> getFunctionArgs() throws ScriptSyntaxException {
         List<Expression> functionArgs = new ArrayList<>();
 
         if (scan.tokenType() == TwistTokenType.OPEN_PAREN) {
@@ -595,7 +633,7 @@ public class TwistParser {
         return buf.toString();
     }
 
-    protected String getIdentifier(String expect) throws TwistParseException {
+    protected String getIdentifier(String expect) throws ScriptSyntaxException {
         if (scan.tokenType() == TwistTokenType.IDENTIFIER) {
             return scan.current().getValue();
         }
@@ -603,8 +641,8 @@ public class TwistParser {
         throw parseException(expect);
     }
     
-    protected TwistParseException parseException(String expected) {
-        return new TwistParseException(scan.getLine() + 1, scan.getLinePos() + 1,
+    protected ScriptSyntaxException parseException(String expected) {
+        return new ScriptSyntaxException(scan.getLine() + 1, scan.getLinePos() + 1,
                 "Expected: " + expected + ", got " + scan.current());
     }
 

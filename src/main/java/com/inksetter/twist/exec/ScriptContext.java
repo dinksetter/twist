@@ -1,6 +1,8 @@
 
 
-package com.inksetter.twist;
+package com.inksetter.twist.exec;
+
+import com.inksetter.twist.EvalContext;
 
 public interface ScriptContext extends EvalContext {
 

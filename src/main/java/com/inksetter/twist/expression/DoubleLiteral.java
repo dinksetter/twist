@@ -1,6 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.EvalContext;
+import com.inksetter.twist.Expression;
 
 public class DoubleLiteral implements Expression {
     public DoubleLiteral(Double value) {

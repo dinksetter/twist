@@ -4,7 +4,7 @@ public class CatchBlock {
 
     private String typeName;
     private String varName;
-    private ExecutableScript block;
+    private StatementBlock block;
 
     public void setType(String typeName) {
         this.typeName = typeName;
@@ -14,7 +14,7 @@ public class CatchBlock {
         this.varName = varName;
     }
 
-    public void setBlock(ExecutableScript block) {
+    public void setBlock(StatementBlock block) {
         this.block = block;
     }
     
@@ -29,7 +29,7 @@ public class CatchBlock {
     /**
      * @return Returns the block.
      */
-    public ExecutableScript getBlock() {
+    public StatementBlock getBlock() {
         return block;
     }
     

@@ -1,7 +1,6 @@
 package com.inksetter.twist.expression.operators.compare;
 
-import com.inksetter.twist.expression.Expression;
-import com.inksetter.twist.expression.operators.AbsractOperExpression;
+import com.inksetter.twist.Expression;
 
 public class RegexNoMatchExpression extends LikeExpression {
     public RegexNoMatchExpression(Expression left, Expression right) {

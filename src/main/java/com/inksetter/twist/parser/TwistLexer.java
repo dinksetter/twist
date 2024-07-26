@@ -118,9 +118,9 @@ public class TwistLexer {
      * Advance the token lexer and return the next token in our string.  This method removes
      * comments from the stream.
      * @return
-     * @throws TwistLexException
+     * @throws ScriptTokenException
      */
-    public TwistToken next() throws TwistLexException {
+    public TwistToken next() throws ScriptTokenException {
         do {
             currentToken = nextToken();
         } while (currentToken._type == TwistTokenType.COMMENT);
@@ -136,9 +136,9 @@ public class TwistLexer {
      * @return an array of token objects representing the individual 
      * tokens in the local syntax statement.
      * 
-     * @throws TwistLexException if there was a problem parsing the SQL statement.
+     * @throws ScriptTokenException if there was a problem parsing the SQL statement.
      */
-    public TwistToken[] getAllTokens() throws TwistLexException {
+    public TwistToken[] getAllTokens() throws ScriptTokenException {
         List<TwistToken> tokens = new ArrayList<>();
         TwistToken token;
         do {
@@ -184,10 +184,10 @@ public class TwistLexer {
      * @return a TwistToken object representing the next token in the script. When the end of the statement is reached, a token of type
      * <code>TwistTokenType.END</code> is returned.  Subsequent calls, after the
      * end token is returned will also return an end token.
-     * @throws TwistLexException if there was a problem parsing the SQL
+     * @throws ScriptTokenException if there was a problem parsing the SQL
      * statement.
      */
-    private TwistToken nextToken() throws TwistLexException {
+    private TwistToken nextToken() throws ScriptTokenException {
         // Keep track of where we started
         begin = pos;
         skipWhitespace();
@@ -225,7 +225,7 @@ public class TwistLexer {
                     return new TwistToken(TwistTokenType.OR, begin, startOfToken);
                 }
                 else {
-                    throw new TwistLexException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
+                    throw new ScriptTokenException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
                 }
             case '&':
                 if (hasNext() && peekChar() == '&') {
@@ -234,7 +234,7 @@ public class TwistLexer {
                     return new TwistToken(TwistTokenType.AND, begin, startOfToken);
                 }
                 else {
-                    throw new TwistLexException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
+                    throw new ScriptTokenException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
                 }
             case '(':
                 return new TwistToken(TwistTokenType.OPEN_PAREN, begin, startOfToken);
@@ -334,12 +334,12 @@ public class TwistLexer {
                     return new TwistToken(TwistTokenType.BANG, begin, startOfToken);
                 }
             default:
-                throw new TwistLexException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
+                throw new ScriptTokenException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
             }
         }
     }
     
-    private TwistToken readNumeric(char c) throws TwistLexException {
+    private TwistToken readNumeric(char c) throws ScriptTokenException {
         // If the first character is a plus or minus, skip over it.
         if (c == '+' || c == '-') {
             nextChar();
@@ -384,7 +384,7 @@ public class TwistLexer {
                 c == '_' || Character.isDigit(c));
     }
     
-    private TwistToken readIdentifier() throws TwistLexException {
+    private TwistToken readIdentifier() throws ScriptTokenException {
         while (hasNext() && isValidIdentifier(peekChar())) {
              nextChar();
         }
@@ -398,7 +398,7 @@ public class TwistLexer {
         return new TwistToken(wordType, begin, startOfToken);
     }
     
-    private TwistTokenType readStringLiteral(char c) throws TwistLexException {
+    private TwistTokenType readStringLiteral(char c) throws ScriptTokenException {
         
         char lookfor = c;
 
@@ -419,15 +419,15 @@ public class TwistLexer {
         }
     }
     
-    private void skipWhitespace() throws TwistLexException {
+    private void skipWhitespace() throws ScriptTokenException {
         while (pos < length && Character.isWhitespace(peekChar())) {
             nextChar();
         }
     }
     
-    private char nextChar() throws TwistLexException {
+    private char nextChar() throws ScriptTokenException {
         if (pos >= length) {
-            throw new TwistLexException(line + 1, linePos + 1, "Unexpected end of text");
+            throw new ScriptTokenException(line + 1, linePos + 1, "Unexpected end of text");
         }
         linePos++;
         char next = in.charAt(pos++);

@@ -1,34 +1,33 @@
 package com.inksetter.twist.exec;
 
-import com.inksetter.twist.ScriptContext;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.Expression;
 
 import java.io.Serializable;
 import java.util.List;
 
-public class ExecutableStatement implements Serializable {
+public class Statement implements Serializable {
 
     private Expression ifTest;
-    private ExecutableStatement ifStatement;
-    private ExecutableStatement elseStatement;
+    private Statement ifStatement;
+    private Statement elseStatement;
     private String assignmentIdentifier;
     private Expression expression;
 
     private List<CatchBlock> catchBlocks;
-    private ExecutableScript finallyBlock;
-    private ExecutableScript subSequence;
+    private StatementBlock finallyBlock;
+    private StatementBlock subSequence;
 
     public void setIfTest(Expression ifTest) {
         this.ifTest = ifTest;
     }
 
-    public void setIfStatement(ExecutableStatement ifStatement) {
+    public void setIfStatement(Statement ifStatement) {
         this.ifStatement = ifStatement;
     }
 
-    public void setElseStatement(ExecutableStatement elseStatement) {
+    public void setElseStatement(Statement elseStatement) {
         this.elseStatement = elseStatement;
     }
 
@@ -50,7 +49,7 @@ public class ExecutableStatement implements Serializable {
         this.catchBlocks = catchBlocks;
     }
 
-    public void setFinallyBlock(ExecutableScript finallyBlock) {
+    public void setFinallyBlock(StatementBlock finallyBlock) {
         this.finallyBlock = finallyBlock;
     }
 
@@ -143,7 +142,7 @@ public class ExecutableStatement implements Serializable {
                             // simple catch expression, then
                             // we return the error results of the exception that got
                             // thrown.
-                            ExecutableScript block = catchBlock.getBlock();
+                            StatementBlock block = catchBlock.getBlock();
 
                             // If there's a block of code to execute on this catch
                             // expression, return the result of executing that
@@ -179,7 +178,7 @@ public class ExecutableStatement implements Serializable {
         return null;
     }
 
-    public void setSubSequence(ExecutableScript subSequence) {
+    public void setSubSequence(StatementBlock subSequence) {
         this.subSequence = subSequence;
     }
 }

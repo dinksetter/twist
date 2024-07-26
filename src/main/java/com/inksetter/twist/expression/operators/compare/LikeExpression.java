@@ -1,6 +1,6 @@
 package com.inksetter.twist.expression.operators.compare;
 
-import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 
 public class LikeExpression extends AbsractOperExpression {
