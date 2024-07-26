@@ -1,5 +1,6 @@
 package com.inksetter.twist;
 
+import com.inksetter.twist.exec.ScriptContext;
 import com.inksetter.twist.expression.function.TwistFunction;
 import com.inksetter.twist.parser.ScriptSyntaxException;
 import com.inksetter.twist.parser.TwistParser;
@@ -29,7 +30,7 @@ public class TwistCoreTest {
                 "print('WOW ' + b);\n";
 
         Script parsed = engine.parseScript(script);
-        MyContext context = new MyContext();
+        ScriptContext context = new SimpleScriptContext();
         parsed.execute(context);
         Assert.assertEquals(100, context.getVariable("a"));
         Assert.assertEquals(104, context.getVariable("b"));
@@ -47,7 +48,7 @@ public class TwistCoreTest {
                 "print('WOW ' + b)\n";
 
         Script parsed = engine.parseScript(script);
-        MyContext context = new MyContext();
+        ScriptContext context = new SimpleScriptContext();
         parsed.execute(context);
         Assert.assertEquals(100, context.getVariable("a"));
         Assert.assertEquals(104, context.getVariable("b"));
@@ -62,7 +63,7 @@ public class TwistCoreTest {
         String script = "print('WOW ' + (100 + 4))";
 
         Script parsed = engine.parseScript(script);
-        MyContext context = new MyContext();
+        ScriptContext context = new SimpleScriptContext();
         parsed.execute(context);
         Assert.assertEquals(1, functionCalls.size());
         Assert.assertEquals(1, functionArgs.size());
@@ -87,7 +88,7 @@ public class TwistCoreTest {
 
     @Test
     public void testMultipleInvocationsOnTheSameContext() throws TwistException {
-        MyContext context = new MyContext();
+        ScriptContext context = new SimpleScriptContext();
         Script parsed = engine.parseScript("a = 0");
         parsed.execute(context);
         Script increment = engine.parseScript("a = a + 1");
@@ -99,7 +100,7 @@ public class TwistCoreTest {
 
     @Test
     public void testDateArithmetic() throws TwistException{
-        MyContext context = new MyContext();
+        ScriptContext context = new SimpleScriptContext();
         engine.parseScript("a = now(); b = a - 4.4; c = b - a; d = b + 8").execute(context);
         System.out.println(context.getVariable("a"));
         System.out.println(context.getVariable("b"));
@@ -114,7 +115,6 @@ public class TwistCoreTest {
 
     @Test
     public void testProperties() throws TwistException{
-        MyContext context = new MyContext();
         Map<String, Object> testMap = new HashMap<>();
 
         testMap.put("a", "a-value");
@@ -122,8 +122,7 @@ public class TwistCoreTest {
 
         TestClass testObj = new TestClass();
 
-        context.setVariable("foo", testMap);
-        context.setVariable("bar", testObj);
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", testMap, "bar", testObj));
 
         engine.parseScript("a = bar.thing1; b = bar.thing2").execute(context);
         engine.parseScript("c = foo.a; d = foo.b").execute(context);
@@ -136,12 +135,10 @@ public class TwistCoreTest {
 
     @Test
     public void testJavaMethods() throws TwistException {
-        MyContext context = new MyContext();
         Map<String, Object> testMap = new HashMap<>();
-
         testMap.put("a", "abcdefg");
 
-        context.setVariable("foo", testMap);
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", testMap));
 
         engine.parseScript("aaa = foo.a; bbb = foo.a.substring(2,5); ccc = aaa.substring(3)").execute(context);
 
@@ -152,8 +149,7 @@ public class TwistCoreTest {
 
     @Test
     public void testJavaMethodsWithInvalidArgs() throws TwistException {
-        MyContext context = new MyContext();
-        context.setVariable("foo", "abcd");
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", "abcd"));
 
         try {
             engine.parseScript("aaa = foo.substring(2,'900');").execute(context);
@@ -166,8 +162,7 @@ public class TwistCoreTest {
 
     @Test
     public void testJson() throws TwistException {
-        MyContext context = new MyContext();
-        context.setVariable("foo", "{\"a\": 900}");
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", "{\"a\": 900}"));
 
         engine.parseScript("aaa = json(foo); bbb = aaa.a;").execute(context);
         Assert.assertEquals(900, context.getVariable("bbb"));
@@ -175,7 +170,7 @@ public class TwistCoreTest {
 
     @Test
     public void testRawJson() throws TwistException {
-        MyContext context = new MyContext();
+        ScriptContext context = new SimpleScriptContext();
 
         engine.parseScript("aaa = {'a':900}; bbb = aaa.a;").execute(context);
         Assert.assertEquals(900, context.getVariable("bbb"));
@@ -187,7 +182,7 @@ public class TwistCoreTest {
 
     @Test
     public void testComplexJson() throws TwistException {
-        MyContext context = new MyContext();
+        ScriptContext context = new SimpleScriptContext();
 
         String script = """
                 aaa = {
@@ -221,7 +216,7 @@ public class TwistCoreTest {
 
     @Test
     public void testRawJsonArray() throws TwistException {
-        MyContext context = new MyContext();
+        ScriptContext context = new SimpleScriptContext();
 
         engine.parseScript("zurg = 'hello'; aaa = [1,2,3,4,5]; bbb = ['a','b','grumph', zurg]").execute(context);
         Object aaa = context.getVariable("aaa");
@@ -247,8 +242,7 @@ public class TwistCoreTest {
 
     @Test
     public void testExpression() throws TwistException {
-        MyContext context = new MyContext();
-        context.setVariable("foo", new ExprTestObject());
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", new ExprTestObject()));
         Assert.assertTrue(ValueUtils.asBoolean(new TwistParser("foo.x == 'banana'").parseExpression().evaluate(context)));
         Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.x != 'banana'").parseExpression().evaluate(context)));
     }
@@ -256,8 +250,7 @@ public class TwistCoreTest {
 
     @Test
     public void testRegexMatch() throws TwistException {
-        MyContext context = new MyContext();
-        context.setVariable("foo", new ExprTestObject());
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", new ExprTestObject()));
         Assert.assertTrue(ValueUtils.asBoolean(new TwistParser("foo.x =~ 'b.*'").parseExpression().evaluate(context)));
         Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.x =~ '.*b'").parseExpression().evaluate(context)));
     }
@@ -265,8 +258,7 @@ public class TwistCoreTest {
 
     @Test
     public void testNumericExpression() throws TwistException {
-        MyContext context = new MyContext();
-        context.setVariable("foo", new ExprTestObject());
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", new ExprTestObject()));
         Assert.assertEquals(3, ValueUtils.asInt(new TwistParser("foo.y / 7 ").parseExpression().evaluate(context)));
         Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.y < 19").parseExpression().evaluate(context)));
     }
@@ -274,13 +266,10 @@ public class TwistCoreTest {
 
     @Test
     public void testInternalMethods() throws TwistException {
-        MyContext context = new MyContext();
-        context.setVariable("foo", new ExprTestObject());
-        context.setVariable("bar", "spacey string   ");
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", new ExprTestObject(), "bar", "spacey string   "));
         Assert.assertEquals("nana", ValueUtils.asString(new TwistParser("foo.x.substring(2)").parseExpression().evaluate(context)));
         Assert.assertEquals("spacey string", ValueUtils.asString(new TwistParser("bar.strip()").parseExpression().evaluate(context)));
     }
 
-    private static class MyContext extends SimpleScriptContext {
-    }
+
 }
