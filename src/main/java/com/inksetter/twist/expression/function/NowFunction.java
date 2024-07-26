@@ -1,8 +1,6 @@
 package com.inksetter.twist.expression.function;
 
-import com.inksetter.twist.TwistException;
-import com.inksetter.twist.EvalContext;
-import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.Expression;
 
 import java.util.Date;
 import java.util.List;
@@ -12,14 +10,10 @@ import java.util.List;
  */
 public class NowFunction extends BaseFunction {
     @Override
-    protected void validateArgs(List<Expression> args) throws TwistException {
+    public Date invoke(List<Object> args) throws FunctionArgumentException {
         if (!args.isEmpty()) {
             throw new FunctionArgumentException("unexpected arguments: " + args);
         }
-    }
-
-    @Override
-    protected Date invoke(EvalContext ctx, List<Object> args) {
         return new Date();
     }
 }

@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.ScriptContext;
+import com.inksetter.twist.exec.ScriptContext;
 
 public class IdentifierAssignable implements Assignable {
     private final String name;

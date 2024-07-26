@@ -1,6 +1,7 @@
 package com.inksetter.twist.expression;
 
 import com.inksetter.twist.EvalContext;
+import com.inksetter.twist.Expression;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
 

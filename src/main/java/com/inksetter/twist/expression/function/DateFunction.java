@@ -11,7 +11,7 @@ import java.util.Date;
 public class DateFunction extends SingleArgFunction {
 
     @Override
-    protected Date invoke(Object arg) throws TwistException {
+    public Date invoke(Object arg) throws TwistException {
         return ValueUtils.asDate(arg);
     }
 }

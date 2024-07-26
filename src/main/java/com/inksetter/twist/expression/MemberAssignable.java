@@ -1,7 +1,8 @@
 package com.inksetter.twist.expression;
 
+import com.inksetter.twist.Expression;
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.ScriptContext;
+import com.inksetter.twist.exec.ScriptContext;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;

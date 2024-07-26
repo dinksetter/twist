@@ -3,7 +3,7 @@ package com.inksetter.twist.expression.operators.arith;
 import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.Expression;
 import com.inksetter.twist.expression.TypeMismatchException;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 

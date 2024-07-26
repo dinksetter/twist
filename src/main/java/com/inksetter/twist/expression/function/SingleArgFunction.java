@@ -1,8 +1,7 @@
 package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.EvalContext;
-import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.Expression;
 
 import java.util.List;
 
@@ -10,16 +9,12 @@ import java.util.List;
  * Decodes a base64 string into a binary data item (byte array).
  */
 public abstract class SingleArgFunction extends BaseFunction {
-
     @Override
-    protected final void validateArgs(List<Expression> args) throws TwistException {
+    public final Object invoke(List<Object> args) throws TwistException {
         if (args.size() != 1) {
-            throw new FunctionArgumentException("expected single argument");
+            throw new FunctionArgumentException("unexpected arguments: " + args);
         }
-    }
 
-    @Override
-    protected final Object invoke(EvalContext ctx, List<Object> args) throws TwistException {
         return this.invoke(args.get(0));
     }
 

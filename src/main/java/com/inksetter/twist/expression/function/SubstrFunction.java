@@ -2,7 +2,7 @@ package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
-import com.inksetter.twist.EvalContext;
+import com.inksetter.twist.Expression;
 
 import java.util.List;
 
@@ -12,11 +12,11 @@ import java.util.List;
 public class SubstrFunction extends BaseFunction {
 
     @Override
-    protected String invoke(EvalContext ctx, List<Object> args) throws TwistException {
+    public String invoke(List<Object> args) throws TwistException {
         if (args.size() < 2 || args.size() > 3) {
             throw new FunctionArgumentException("expected 2 or 3 arguments");
         }
-        
+
         String format = ValueUtils.asString(args.get(0));
         int start = ValueUtils.asInt(args.get(1));
 
@@ -55,4 +55,5 @@ public class SubstrFunction extends BaseFunction {
             return format.substring(start);
         }
     }
+
 }

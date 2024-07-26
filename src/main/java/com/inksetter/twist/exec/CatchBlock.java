@@ -1,31 +1,36 @@
 package com.inksetter.twist.exec;
 
 public class CatchBlock {
+
+    private String typeName;
+    private String varName;
+    private StatementBlock block;
+
     public void setType(String typeName) {
-        _typeName = typeName;
+        this.typeName = typeName;
     }
 
     public void setVarName(String varName) {
-        _varName = varName;
+        this.varName = varName;
     }
 
-    public void setBlock(ExecutableScript block) {
-        _block = block;
+    public void setBlock(StatementBlock block) {
+        this.block = block;
     }
     
     public String getTypeName() {
-        return _typeName;
+        return typeName;
     }
 
     public String getVarName() {
-        return _varName;
+        return varName;
     }
 
     /**
      * @return Returns the block.
      */
-    public ExecutableScript getBlock() {
-        return _block;
+    public StatementBlock getBlock() {
+        return block;
     }
     
     // @see java.lang.Object#toString()
@@ -33,18 +38,15 @@ public class CatchBlock {
     public String toString() {
         StringBuilder tmp = new StringBuilder();
         tmp.append("catch(");
-        tmp.append(_typeName);
-        tmp.append(" ").append(_varName).append(")");
-        if (_block != null) {
-            tmp.append(_block);
+        tmp.append(typeName);
+        tmp.append(" ").append(varName).append(")");
+        if (block != null) {
+            tmp.append(block);
         }
         else {
             tmp.append("{ /* empty */ }");
         }
         return tmp.toString();
     }
-    
-    private String _typeName;
-    private String _varName;
-    private ExecutableScript _block;
+
 }

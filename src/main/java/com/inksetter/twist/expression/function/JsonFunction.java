@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.function;
 
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.BaseEvalContext;
+import com.inksetter.twist.MapContext;
 import com.inksetter.twist.parser.TwistParser;
 
 /**
@@ -11,6 +11,6 @@ public class JsonFunction extends SingleArgFunction {
 
     @Override
     protected Object invoke(Object argValue) throws TwistException {
-        return new TwistParser(argValue.toString()).parseExpression().evaluate(new BaseEvalContext());
+        return new TwistParser(argValue.toString()).parseExpression().evaluate(new MapContext());
     }
 }

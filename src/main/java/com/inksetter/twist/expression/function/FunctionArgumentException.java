@@ -12,8 +12,4 @@ public class FunctionArgumentException extends TwistException {
     public FunctionArgumentException(String message) {
         super("Invalid function argument: " + message);
     }
-    
-    public FunctionArgumentException(String message, Throwable e) {
-        super("Invalid function argument: " + message, e);
-    }
 }

@@ -3,7 +3,7 @@ package com.inksetter.twist.expression.operators;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.EvalContext;
-import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.Expression;
 
 public class NotExpression implements Expression {
     public NotExpression(Expression target) {

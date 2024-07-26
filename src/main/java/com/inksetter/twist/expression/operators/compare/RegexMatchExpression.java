@@ -1,6 +1,6 @@
 package com.inksetter.twist.expression.operators.compare;
 
-import com.inksetter.twist.expression.Expression;
+import com.inksetter.twist.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 
 public class RegexMatchExpression extends AbsractOperExpression {
@@ -17,6 +17,6 @@ public class RegexMatchExpression extends AbsractOperExpression {
     
     @Override
     protected String operString() {
-        return " LIKE ";
+        return " =~ ";
     }
 }
