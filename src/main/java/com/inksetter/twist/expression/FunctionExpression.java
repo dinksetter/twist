@@ -13,31 +13,34 @@ import java.util.List;
  * in-line as values, and there's support for calling user-supplied functions.
  */
 public class FunctionExpression implements Expression {
+    private final String name;
+    private final List<Expression> args;
+    private final TwistFunction function;
 
     public FunctionExpression(String name, List<Expression> args, TwistFunction function) {
-        _name = name;
-        _args = args;
-        _function = function;
+        this.name = name;
+        this.args = args;
+        this.function = function;
     }
     
     public Object evaluate(EvalContext ctx) throws TwistException {
         List<Object> argValues = new ArrayList<>();
 
-        for (Expression arg : _args) {
+        for (Expression arg : args) {
             argValues.add(arg.evaluate(ctx));
         }
 
-        return _function.invoke(argValues);
+        return function.invoke(argValues);
     }
     
     // @see java.lang.Object#toString()
     @Override
     public String toString() {
         StringBuilder tmp = new StringBuilder();
-        tmp.append(_name);
+        tmp.append(name);
         tmp.append('(');
         boolean firstOne = true;
-        for (Expression arg : _args) {
+        for (Expression arg : args) {
             if (firstOne) {
                 firstOne = false;
             }
@@ -50,7 +53,4 @@ public class FunctionExpression implements Expression {
         return tmp.toString();
     }
 
-    private final String _name;
-    private final List<Expression> _args;
-    private final TwistFunction _function;
 }

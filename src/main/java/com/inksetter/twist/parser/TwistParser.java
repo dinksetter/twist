@@ -6,6 +6,7 @@ import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.exec.CatchBlock;
 import com.inksetter.twist.exec.Statement;
 import com.inksetter.twist.exec.StatementBlock;
+import com.inksetter.twist.exec.UserDefFunction;
 import com.inksetter.twist.expression.*;
 import com.inksetter.twist.expression.function.*;
 import com.inksetter.twist.expression.operators.AndExpression;
@@ -130,6 +131,22 @@ public class TwistParser {
         else if (scan.tokenType() == TwistTokenType.FOR) {
 //            stmt.setForSequence(buildForSequence());
         }
+        else if (scan.tokenType() == TwistTokenType.DEF) {
+            scan.next();
+            String functionName = getIdentifier("Function");
+            scan.next();
+            if (scan.tokenType() != TwistTokenType.OPEN_PAREN) {
+                throw parseException("(");
+            }
+            List<String> argNames = getFunctionArgDef();
+            if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
+                throw parseException("{");
+            }
+            StatementBlock functionBlock = buildSubSequence();
+
+            UserDefFunction newFunc = new UserDefFunction(functionName, argNames, functionBlock);
+            TwistFunction oldFunc = customFunctions.put(functionName, newFunc);
+        }
         else {
             if (scan.tokenType() == TwistTokenType.OPEN_BRACE) {
                 stmt.setSubSequence(buildSubSequence());
@@ -211,7 +228,29 @@ public class TwistParser {
         }
         return blocks;
     }
-    
+
+    private List<String> getFunctionArgDef() throws ScriptSyntaxException {
+        List<String> functionArgs = new ArrayList<>();
+
+        if (scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+            scan.next();
+            while (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+                functionArgs.add(getIdentifier("argName"));
+                scan.next();
+                if (scan.tokenType() == TwistTokenType.COMMA) {
+                    scan.next();
+                }
+                else if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+                    throw parseException(")");
+                }
+            }
+            scan.next();
+        }
+        return functionArgs;
+    }
+
+
+
     protected StatementBlock buildSubSequence() throws ScriptSyntaxException {
         if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
             throw parseException("{");
