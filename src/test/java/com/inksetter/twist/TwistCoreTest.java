@@ -227,6 +227,18 @@ public class TwistCoreTest {
         Assert.assertEquals("hello", ((List<Object>)bbb).get(3));
     }
 
+    @Test
+    public void testUserDefFunctions() throws TwistException {
+        ScriptContext context = new SimpleScriptContext();
+
+        context.setVariable("aaa", "hello");
+        context.setVariable("bbb", "jello");
+        context.setVariable("ccc", 76);
+        Object result = engine.parseScript("def fff(a, b, c) { a + ' ' + b + ' ' + c }; fff(aaa, bbb,ccc)").execute(context);
+//         = engine.parseScript("fff(aaa, bbb, ccc)").execute(context);
+        Assert.assertEquals("hello jello 76", result);
+    }
+
     public static class ExprTestObject {
         private final String x = "banana";
         private final int y = 23;

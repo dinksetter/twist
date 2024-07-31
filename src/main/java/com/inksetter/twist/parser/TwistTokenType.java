@@ -27,6 +27,7 @@ public enum TwistTokenType {
     FOR,
     TRY,
     CATCH,
+    DEF,
     FINALLY,
     TRUE, FALSE,
 }
