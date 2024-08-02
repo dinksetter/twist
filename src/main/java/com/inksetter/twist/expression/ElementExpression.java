@@ -2,9 +2,10 @@ package com.inksetter.twist.expression;
 
 import com.inksetter.twist.*;
 
+import java.lang.reflect.Array;
 import java.util.List;
 
-public class ElementExpression implements Expression {
+public class ElementExpression implements Assignable {
 
     public ElementExpression(Expression target, Expression element) {
         _element = element;
@@ -38,6 +39,32 @@ public class ElementExpression implements Expression {
         }
 
         return result;
+    }
+
+    @Override
+    public void assignValue(EvalContext exec, Object value) throws TwistException {
+        Object obj = _target.evaluate(exec);
+
+        if (obj == null) {
+            throw new NullValueException(_target.toString());
+        }
+
+        Object elementObj = _element.evaluate(exec);
+        if (obj.getClass().isArray()) {
+            if (!(elementObj instanceof Number)) {
+                throw new TypeMismatchException("Expected number");
+            }
+            Array.set(obj, ((Number) elementObj).intValue(), value);
+        }
+        else if (obj instanceof List) {
+            if (!(elementObj instanceof Number)) {
+                throw new TypeMismatchException("Expected number");
+            }
+            ((List) obj).set(((Number) elementObj).intValue(), value);
+        }
+        else {
+            throw new TypeMismatchException("Expected array or list type");
+        }
     }
 
     // @see java.lang.Object#toString()

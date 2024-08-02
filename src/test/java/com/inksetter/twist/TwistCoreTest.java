@@ -7,10 +7,7 @@ import com.inksetter.twist.parser.TwistParser;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TwistCoreTest {
 
@@ -240,15 +237,23 @@ public class TwistCoreTest {
     }
 
     public static class ExprTestObject {
-        private final String x = "banana";
-        private final int y = 23;
+        private String x = "banana";
+        private int y = 23;
 
         public String getX() {
             return x;
         }
 
+        public void setX(String x) {
+            this.x = x;
+        }
+
         public int getY() {
             return y;
+        }
+
+        public void setY(int y) {
+            this.y = y;
         }
     }
 
@@ -283,5 +288,48 @@ public class TwistCoreTest {
         Assert.assertEquals("spacey string", ValueUtils.asString(new TwistParser("bar.strip()").parseExpression().evaluate(context)));
     }
 
+    @Test
+    public void testMemberAssignment() throws TwistException {
+        ExprTestObject foo = new ExprTestObject();
+        Map<String, Object> barMap = new LinkedHashMap<>();
+        barMap.put("a", "hello");
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", foo, "bar", barMap));
+        TwistEngine t = new TwistEngine();
+        Assert.assertEquals("banana", t.parseScript("foo.x").execute(context));
+        Assert.assertEquals("hello", t.parseScript("bar.a").execute(context));
+        t.parseScript("foo.x = 'apple'; bar.a = 'zoinks';").execute(context);
+
+        Assert.assertEquals("apple", foo.getX());
+        Assert.assertEquals("zoinks", barMap.get("a"));
+    }
+
+    @Test
+    public void testElementAssignment() throws TwistException {
+        String[] foo = new String[] {"one","two","three"};
+        List<String> bar = new ArrayList<>(List.of("first", "second", "third"));
+
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", foo, "bar", bar));
+        TwistEngine t = new TwistEngine();
+        Assert.assertEquals("two", t.parseScript("foo[1]").execute(context));
+        Assert.assertEquals("first", t.parseScript("bar[0]").execute(context));
+        t.parseScript("foo[1] = 'apple'; bar[0] = 'zoinks';").execute(context);
+
+        Assert.assertEquals("apple", foo[1]);
+        Assert.assertEquals("zoinks", bar.get(0));
+    }
+
+    @Test
+    public void testChainedAssignment() throws TwistException {
+
+        ScriptContext context = new SimpleScriptContext();
+        TwistEngine t = new TwistEngine();
+        t.parseScript("a = b = c = 'hello'; d = e = 23;").execute(context);
+
+        Assert.assertEquals("hello", context.getVariable("a"));
+        Assert.assertEquals("hello", context.getVariable("b"));
+        Assert.assertEquals("hello", context.getVariable("c"));
+        Assert.assertEquals(23, context.getVariable("d"));
+        Assert.assertEquals(23, context.getVariable("e"));
+    }
 
 }

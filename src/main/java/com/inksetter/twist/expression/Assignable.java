@@ -1,8 +1,9 @@
 package com.inksetter.twist.expression;
 
+import com.inksetter.twist.EvalContext;
+import com.inksetter.twist.Expression;
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.exec.ScriptContext;
 
-public interface Assignable {
-    Object assignValue(ScriptContext exec, Object value) throws TwistException;
+public interface Assignable extends Expression {
+    void assignValue(EvalContext exec, Object value) throws TwistException;
 }

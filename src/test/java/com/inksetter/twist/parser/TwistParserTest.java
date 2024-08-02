@@ -1,8 +1,10 @@
 package com.inksetter.twist.parser;
 
+import com.inksetter.twist.TwistEngine;
 import com.inksetter.twist.exec.Statement;
 import com.inksetter.twist.exec.StatementBlock;
 import com.inksetter.twist.Expression;
+import com.inksetter.twist.expression.AssignmentExpression;
 import com.inksetter.twist.expression.FunctionExpression;
 import com.inksetter.twist.expression.function.TwistFunction;
 import com.inksetter.twist.expression.operators.arith.MultiplyExpression;
@@ -33,8 +35,8 @@ public class TwistParserTest {
         List<Statement> statements = parsed.getStatements();
         assertEquals(1, statements.size());
         Statement statement = statements.get(0);
-        String assignTo = statement.getAssignment();
-        assertEquals("a", assignTo);
+        Expression expr = statement.getExpression();
+        assertTrue(expr instanceof AssignmentExpression);
     }
 
     @Test
@@ -45,7 +47,7 @@ public class TwistParserTest {
                 "b = callFunction(a, 'String');\n" +
                 "if (a == b && c != true) print('WOW');\n";
 
-        StatementBlock parsed = (StatementBlock) new TwistParser(script, functions).parseScript();
+        StatementBlock parsed = (StatementBlock) new TwistParser(script, new TwistEngine(functions)).parseScript();
         List<Statement> statements = parsed.getStatements();
         assertEquals(3, statements.size());
     }
@@ -56,8 +58,8 @@ public class TwistParserTest {
         List<Statement> statements = parsed.getStatements();
         assertEquals(1, statements.size());
         Statement statement = statements.get(0);
-        String assignTo = statement.getAssignment();
-        assertEquals("foo", assignTo);
+        Expression expr = statement.getExpression();
+        assertTrue(expr instanceof AssignmentExpression);
     }
 
     @Test
@@ -67,14 +69,12 @@ public class TwistParserTest {
         String script =
                 "a = 1000 * func('var' + b);" +
                 "func2(a);";
-        StatementBlock parsed = (StatementBlock) new TwistParser(script, functions).parseScript();
+        StatementBlock parsed = (StatementBlock) new TwistParser(script, new TwistEngine(functions)).parseScript();
         List<Statement> statements = parsed.getStatements();
         assertEquals(2, statements.size());
         Statement statement = statements.get(0);
-        String assignTo = statement.getAssignment();
-        assertEquals("a", assignTo);
         Expression expr = statement.getExpression();
-        assertTrue(expr instanceof MultiplyExpression);
+        assertTrue(expr instanceof AssignmentExpression);
         statement = statements.get(1);
         expr = statement.getExpression();
         assertTrue(expr instanceof FunctionExpression);

@@ -12,7 +12,6 @@ public class Statement implements Serializable {
     private Expression ifTest;
     private Statement ifStatement;
     private Statement elseStatement;
-    private String assignmentIdentifier;
     private Expression expression;
 
     private List<CatchBlock> catchBlocks;
@@ -29,14 +28,6 @@ public class Statement implements Serializable {
 
     public void setElseStatement(Statement elseStatement) {
         this.elseStatement = elseStatement;
-    }
-
-    public void setAssignment(String assignmentIdentifier) {
-        this.assignmentIdentifier = assignmentIdentifier;
-    }
-
-    public String getAssignment() {
-        return assignmentIdentifier;
     }
 
     public void setExpression(Expression expression) {
@@ -93,9 +84,6 @@ public class Statement implements Serializable {
                     tmp.append(subSequence);
                 }
                 else {
-                    if (assignmentIdentifier != null) {
-                        tmp.append(assignmentIdentifier).append(" = ");
-                    }
                     tmp.append(expression).append(";");
                 }
             }
@@ -107,18 +95,12 @@ public class Statement implements Serializable {
 
     private Object executeStatement(ScriptContext exec) throws TwistException {
         if (ifTest != null) {
-            exec.debug("if (" + ifTest + ") ... ");
             Object testValue = ifTest.evaluate(exec);
             if (ValueUtils.asBoolean(testValue)) {
-                exec.debug("If-test passed - executing if block");
                 ifStatement.execute(exec);
             }
             else if (elseStatement != null) {
-                exec.debug("If-test failed - executing else block");
                 elseStatement.execute(exec);
-            }
-            else {
-                exec.debug("If-test failed - no else block to execute");
             }
 
             // If statements do not have value, just side effects.
@@ -137,7 +119,6 @@ public class Statement implements Serializable {
                         boolean matches = exceptionClassName.equals(catchBlock.getTypeName());
 
                         if (matches) {
-                            exec.debug("Catch condition met - executing catch block...");
                             // We execute the catch block, if it exists. If it's a
                             // simple catch expression, then
                             // we return the error results of the exception that got
@@ -153,7 +134,6 @@ public class Statement implements Serializable {
                             }
                         }
                     }
-                    exec.debug("No catch expression matched throwing exception");
                 }
 
                 // If we got through the entire catch expression set, throw the
@@ -161,7 +141,6 @@ public class Statement implements Serializable {
                 throw e;
             } finally {
                 if (finallyBlock != null) {
-                    exec.debug("Executing finally block...");
                     finallyBlock.execute(exec, true);
                 }
             }
@@ -169,9 +148,6 @@ public class Statement implements Serializable {
         else {
             if (expression != null) {
                 Object value = expression.evaluate(exec);
-                if (assignmentIdentifier != null) {
-                    exec.setVariable(assignmentIdentifier, value);
-                }
                 return value;
             }
         }

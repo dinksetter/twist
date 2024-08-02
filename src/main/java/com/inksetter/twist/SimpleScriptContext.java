@@ -46,9 +46,4 @@ public class SimpleScriptContext implements ScriptContext {
         }
         varStack.getFirst().put(name, value);
     }
-
-    @Override
-    public void debug(String format, Object... args) {
-        // by default, do nothing
-    }
 }

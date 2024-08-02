@@ -3,6 +3,7 @@ package com.inksetter.twist.parser;
 import com.inksetter.twist.Expression;
 import com.inksetter.twist.Script;
 import com.inksetter.twist.TwistDataType;
+import com.inksetter.twist.TwistEngine;
 import com.inksetter.twist.exec.CatchBlock;
 import com.inksetter.twist.exec.Statement;
 import com.inksetter.twist.exec.StatementBlock;
@@ -25,16 +26,15 @@ import java.util.*;
  */
 public class TwistParser {
     protected final TwistLexer scan;
-    private final Map<String, TwistFunction> customFunctions = new HashMap<>();
+    private final TwistEngine engine;
 
     public TwistParser(CharSequence script) {
         this(script, null);
     }
-    public TwistParser(CharSequence script, Map<String, TwistFunction> functions) {
+
+    public TwistParser(CharSequence script, TwistEngine engine) {
         scan = new TwistLexer(script);
-        if (functions != null && !functions.isEmpty()) {
-            customFunctions.putAll(functions);
-        }
+        this.engine = engine;
     }
 
     public Script parseScript() throws ScriptSyntaxException {
@@ -145,33 +145,15 @@ public class TwistParser {
             StatementBlock functionBlock = buildSubSequence();
 
             UserDefFunction newFunc = new UserDefFunction(functionName, argNames, functionBlock);
-            TwistFunction oldFunc = customFunctions.put(functionName, newFunc);
+            if (engine != null) {
+                engine.addFunction(functionName, newFunc);
+            }
         }
         else {
             if (scan.tokenType() == TwistTokenType.OPEN_BRACE) {
                 stmt.setSubSequence(buildSubSequence());
             }
             else {
-                if (scan.tokenType() == TwistTokenType.IDENTIFIER) {
-                    String identifier = getIdentifier("NAME");
-                    TwistLexer.TwistToken save = scan.current();
-                    scan.next();
-                    while (scan.tokenType() == TwistTokenType.DOT) {
-                        scan.next();
-                        if (scan.tokenType() == TwistTokenType.IDENTIFIER) {
-
-                        }
-                    }
-
-                    if (scan.tokenType() == TwistTokenType.ASSIGNMENT) {
-                        // Assignment
-                        scan.next();
-                        stmt.setAssignment(identifier);
-                    }
-                    else {
-                        scan.reset(save);
-                    }
-                }
                 stmt.setExpression(buildFullExpression());
             }
         }
@@ -437,6 +419,16 @@ public class TwistParser {
             }
         }
 
+        if (scan.tokenType() == TwistTokenType.ASSIGNMENT) {
+            if (expr instanceof Assignable) {
+                scan.next();
+                expr = new AssignmentExpression((Assignable) expr, buildFullExpression());
+            }
+            else {
+                throw parseException("Cannot assign to expression");
+            }
+        }
+
         return expr;
     }
 
@@ -595,7 +587,7 @@ public class TwistParser {
     protected Expression buildFunctionExpression(String functionName) throws ScriptSyntaxException {
         // This method only gets called if parentheses have been seen
         List<Expression> functionArgs = getFunctionArgs();
-        TwistFunction func = customFunctions.get(functionName);
+        TwistFunction func = engine != null ? engine.lookupFunction(functionName) : null;
         if (func == null) {
             func = _BUILTINS.get(functionName.toLowerCase());
         }
