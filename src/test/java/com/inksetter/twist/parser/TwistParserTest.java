@@ -1,6 +1,7 @@
 package com.inksetter.twist.parser;
 
 import com.inksetter.twist.TwistEngine;
+import com.inksetter.twist.exec.ExpressionStatement;
 import com.inksetter.twist.exec.Statement;
 import com.inksetter.twist.exec.StatementBlock;
 import com.inksetter.twist.Expression;
@@ -35,7 +36,8 @@ public class TwistParserTest {
         List<Statement> statements = parsed.getStatements();
         assertEquals(1, statements.size());
         Statement statement = statements.get(0);
-        Expression expr = statement.getExpression();
+        assertTrue(statement instanceof ExpressionStatement);
+        Expression expr = ((ExpressionStatement) statement).getExpression();
         assertTrue(expr instanceof AssignmentExpression);
     }
 
@@ -58,7 +60,8 @@ public class TwistParserTest {
         List<Statement> statements = parsed.getStatements();
         assertEquals(1, statements.size());
         Statement statement = statements.get(0);
-        Expression expr = statement.getExpression();
+        assertTrue(statement instanceof ExpressionStatement);
+        Expression expr = ((ExpressionStatement)statement).getExpression();
         assertTrue(expr instanceof AssignmentExpression);
     }
 
@@ -73,10 +76,11 @@ public class TwistParserTest {
         List<Statement> statements = parsed.getStatements();
         assertEquals(2, statements.size());
         Statement statement = statements.get(0);
-        Expression expr = statement.getExpression();
+        Expression expr = ((ExpressionStatement)statement).getExpression();
         assertTrue(expr instanceof AssignmentExpression);
+
         statement = statements.get(1);
-        expr = statement.getExpression();
+        expr = ((ExpressionStatement)statement).getExpression();
         assertTrue(expr instanceof FunctionExpression);
     }
 }

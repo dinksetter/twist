@@ -76,15 +76,10 @@ public class TwistLexer {
         private final int _beginWhitespace;
         private final int _end;
     }
-
-    public void reset(TwistToken token) {
-        currentToken = token;
-        pos = token._end;
-    }
     
     /**
      * Return the current token under the lexer's thumb.
-     * @return
+     * @return the current token
      */
     public TwistToken current() {
         return currentToken;
@@ -93,7 +88,7 @@ public class TwistLexer {
     /**
      * Return the type of the current token of the lexer.  This is equivalent to calling
      * current().getType().
-     * @return
+     * @return the type of the current token
      */
     public TwistTokenType tokenType() {
         return currentToken._type;
@@ -101,7 +96,7 @@ public class TwistLexer {
 
     /**
      * Gets the line on which the current token sits.
-     * @return
+     * @return the current line number of the parsed input.
      */
     public int getLine() {
         return line;
@@ -109,7 +104,7 @@ public class TwistLexer {
     
     /**
      * Gets the position within the line at which the current token sits.
-     * @return
+     * @return the line position (in characters) of the current token
      */
     public int getLinePos() {
         return linePos - (pos - currentToken._beginToken);
@@ -118,8 +113,7 @@ public class TwistLexer {
     /**
      * Advance the token lexer and return the next token in our string.  This method removes
      * comments from the stream.
-     * @return
-     * @throws ScriptTokenException
+     * @return the next token (which will become the current token)
      */
     public TwistToken next() throws ScriptTokenException {
         do {
@@ -129,53 +123,6 @@ public class TwistLexer {
         return currentToken;
     }
 
-    /**
-     * Return all remaining tokens in this statement.  Any tokens already
-     * returned will not be processed again.  Note that this method does
-     * not remove comments from the stream.
-     *     
-     * @return an array of token objects representing the individual 
-     * tokens in the local syntax statement.
-     * 
-     * @throws ScriptTokenException if there was a problem parsing the SQL statement.
-     */
-    public TwistToken[] getAllTokens() throws ScriptTokenException {
-        List<TwistToken> tokens = new ArrayList<>();
-        TwistToken token;
-        do {
-            token = nextToken();
-            tokens.add(token);
-        } while (token.getType() != TwistTokenType.END);
-        
-        return tokens.toArray(new TwistToken[tokens.size()]);
-    }
-    
-    /**
-     * Builds a string from an array of script elements (keywords, etc.).
-     * @param elements a list of token objects that make up a script.
-     * @return the resulting script string.
-     */
-    public static String getString(TwistToken[] elements) {
-        StringBuilder buf = new StringBuilder();
-        for (TwistToken element : elements) {
-            buf.append(element);
-        }
-        return buf.toString();
-    }
-
-    /**
-     * Builds a string from a collection of script elements (keywords, etc.).
-     * @param elements a Collection object containing token objects that make up a script.
-     * @return the resulting script string.
-     */
-    public static String getString(Collection<TwistToken> elements) {
-        StringBuilder buf = new StringBuilder();
-        for (TwistToken e : elements) {
-            buf.append(e);
-        }
-        return buf.toString();
-    }
-    
     //
     // Implementation
     //
@@ -250,11 +197,29 @@ public class TwistLexer {
             case ']':
                 return new TwistToken(TwistTokenType.CLOSE_BRACKET, begin, startOfToken);
             case '*':
-                return new TwistToken(TwistTokenType.STAR, begin, startOfToken);
+                if (hasNext() && peekChar() == '=') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.STARASSIGN, begin, startOfToken);
+                }
+                else {
+                    return new TwistToken(TwistTokenType.STAR, begin, startOfToken);
+                }
             case '+':
-                return new TwistToken(TwistTokenType.PLUS, begin, startOfToken);
+                if (hasNext() && peekChar() == '=') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.PLUSASSIGN, begin, startOfToken);
+                }
+                else {
+                    return new TwistToken(TwistTokenType.PLUS, begin, startOfToken);
+                }
             case '-':
-                return new TwistToken(TwistTokenType.MINUS, begin, startOfToken);
+                if (hasNext() && peekChar() == '=') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.MINUSASSIGN, begin, startOfToken);
+                }
+                else {
+                    return new TwistToken(TwistTokenType.MINUS, begin, startOfToken);
+                }
             case '?':
                 if (hasNext() && peekChar() == ':') {
                     nextChar();
@@ -276,11 +241,21 @@ public class TwistLexer {
                     nextChar();
                     return new TwistToken(TwistTokenType.COMMENT, begin, startOfToken);
                 }
+                else if (hasNext() && peekChar() == '=') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.SLASHASSIGN, begin, startOfToken);
+                }
                 else {
                     return new TwistToken(TwistTokenType.SLASH, begin, startOfToken);
                 }
             case '%':
-                return new TwistToken(TwistTokenType.PERCENT, begin, startOfToken);
+                if (hasNext() && peekChar() == '=') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.PERCENTASSIGN, begin, startOfToken);
+                }
+                else {
+                    return new TwistToken(TwistTokenType.PERCENT, begin, startOfToken);
+                }
             case ',':
                 return new TwistToken(TwistTokenType.COMMA, begin, startOfToken);
             case '=':
@@ -294,7 +269,6 @@ public class TwistLexer {
                     nextChar();
                     return new TwistToken(TwistTokenType.MATCH, begin, startOfToken);
                 }
-
                 else {
                     return new TwistToken(TwistTokenType.ASSIGNMENT, begin, startOfToken);
                 }

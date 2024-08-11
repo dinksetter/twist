@@ -4,10 +4,7 @@ import com.inksetter.twist.Expression;
 import com.inksetter.twist.Script;
 import com.inksetter.twist.TwistDataType;
 import com.inksetter.twist.TwistEngine;
-import com.inksetter.twist.exec.CatchBlock;
-import com.inksetter.twist.exec.Statement;
-import com.inksetter.twist.exec.StatementBlock;
-import com.inksetter.twist.exec.UserDefFunction;
+import com.inksetter.twist.exec.*;
 import com.inksetter.twist.expression.*;
 import com.inksetter.twist.expression.function.*;
 import com.inksetter.twist.expression.operators.AndExpression;
@@ -18,7 +15,12 @@ import com.inksetter.twist.expression.operators.arith.*;
 import com.inksetter.twist.expression.operators.compare.*;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The core command parser for Twist command syntax.  This parser reads string input
@@ -94,22 +96,23 @@ public class TwistParser {
     }
     
     protected Statement buildStatement() throws ScriptSyntaxException {
-        Statement stmt = new Statement();
+        Statement stmt;
 
         if (scan.tokenType() == TwistTokenType.IF) {
-            stmt.setIfTest(buildIfExpression());
+            Expression ifTest = buildIfExpression();
 
             if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
                 throw parseException(")");
             }
             scan.next();
 
-            stmt.setIfStatement(buildStatement());
-
+            Statement ifTrue = buildStatement();
+            Statement ifElse = null;
             if (scan.tokenType() == TwistTokenType.ELSE) {
                 scan.next();
-                stmt.setElseStatement(buildStatement());
+                ifElse = buildStatement();
             }
+            stmt = new IfStatement(ifTest, ifTrue, ifElse);
         }
         else if (scan.tokenType() == TwistTokenType.TRY) {
             scan.next();
@@ -120,16 +123,41 @@ public class TwistParser {
             }
 
             // Don't scan the brace.  Let the main block parser do that.
-            stmt.setSubSequence(buildSubSequence());
-            stmt.setCatchBlocks(buildCatchBlocks());
+            StatementBlock tryBlock = buildSubSequence();
+            List<CatchBlock> catchBlocks = buildCatchBlocks();
+            StatementBlock finallyBlock = null;
             if (scan.tokenType() == TwistTokenType.FINALLY) {
                 // Scan past the FINALLY keyword
                 scan.next();
-                stmt.setFinallyBlock(buildSubSequence());
+                finallyBlock = buildSubSequence();
             }
+
+            stmt = new TryStatement(tryBlock, catchBlocks, finallyBlock);
         }
         else if (scan.tokenType() == TwistTokenType.FOR) {
-//            stmt.setForSequence(buildForSequence());
+            scan.next();
+            if (scan.tokenType() != TwistTokenType.OPEN_PAREN) {
+                throw parseException("(");
+            }
+            scan.next();
+            Expression initial = buildFullExpression();
+            if (scan.tokenType() != TwistTokenType.SEMICOLON) {
+                throw parseException(";");
+            }
+            scan.next();
+            Expression test = buildFullExpression();
+            if (scan.tokenType() != TwistTokenType.SEMICOLON) {
+                throw parseException(";");
+            }
+            scan.next();
+            Expression end = buildFullExpression();
+            if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+                throw parseException(")");
+            }
+            scan.next();
+
+            Statement body = buildStatement();
+            stmt = new ForStatement(initial, test, end, body);
         }
         else if (scan.tokenType() == TwistTokenType.DEF) {
             scan.next();
@@ -148,14 +176,14 @@ public class TwistParser {
             if (engine != null) {
                 engine.addFunction(functionName, newFunc);
             }
+
+            stmt = new NullStatement();
+        }
+        else if (scan.tokenType() == TwistTokenType.OPEN_BRACE) {
+            stmt = new BlockStatement(buildSubSequence());
         }
         else {
-            if (scan.tokenType() == TwistTokenType.OPEN_BRACE) {
-                stmt.setSubSequence(buildSubSequence());
-            }
-            else {
-                stmt.setExpression(buildFullExpression());
-            }
+            stmt = new ExpressionStatement(buildFullExpression());
         }
 
         return stmt;
@@ -419,13 +447,31 @@ public class TwistParser {
             }
         }
 
-        if (scan.tokenType() == TwistTokenType.ASSIGNMENT) {
-            if (expr instanceof Assignable) {
-                scan.next();
-                expr = new AssignmentExpression((Assignable) expr, buildFullExpression());
-            }
-            else {
+        if (ASSIGNMENT_OPERS.contains(scan.tokenType())) {
+            if (!(expr instanceof Assignable)) {
                 throw parseException("Cannot assign to expression");
+            }
+            TwistTokenType oper = scan.tokenType();
+            scan.next();
+            switch (oper) {
+                case ASSIGNMENT:
+                    expr = new AssignmentExpression((Assignable) expr, buildFullExpression());
+                    break;
+                case PLUSASSIGN:
+                    expr = new AssignmentExpression((Assignable) expr, new PlusExpression(expr, buildFullExpression()));
+                    break;
+                case MINUSASSIGN:
+                    expr = new AssignmentExpression((Assignable) expr, new MinusExpression(expr, buildFullExpression()));
+                    break;
+                case STARASSIGN:
+                    expr = new AssignmentExpression((Assignable) expr, new MultiplyExpression(expr, buildFullExpression()));
+                    break;
+                case SLASHASSIGN:
+                    expr = new AssignmentExpression((Assignable) expr, new DivisionExpression(expr, buildFullExpression()));
+                    break;
+                case PERCENTASSIGN:
+                    expr = new AssignmentExpression((Assignable) expr, new ModExpression(expr, buildFullExpression()));
+                    break;
             }
         }
 
@@ -489,7 +535,6 @@ public class TwistParser {
                 }
             }
             catch (NumberFormatException e) {
-                e.printStackTrace();
                 throw parseException("NUMERIC");
             }
             
@@ -599,6 +644,7 @@ public class TwistParser {
         return new FunctionExpression(functionName, functionArgs, func);
     }
 
+    private static final EnumSet<TwistTokenType> ASSIGNMENT_OPERS = EnumSet.of(TwistTokenType.ASSIGNMENT, TwistTokenType.PLUSASSIGN, TwistTokenType.MINUSASSIGN, TwistTokenType.STARASSIGN, TwistTokenType.SLASHASSIGN, TwistTokenType.PERCENTASSIGN);
     private final static Map<String, TwistFunction> _BUILTINS = new HashMap<>();
     static {
         _BUILTINS.put("date", new DateFunction());

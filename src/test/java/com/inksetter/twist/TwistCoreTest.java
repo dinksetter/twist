@@ -332,4 +332,49 @@ public class TwistCoreTest {
         Assert.assertEquals(23, context.getVariable("e"));
     }
 
+    @Test
+    public void testSelfAssignmentOperators() throws TwistException {
+        ScriptContext context = new SimpleScriptContext();
+        TwistEngine t = new TwistEngine();
+        t.parseScript("a = 100").execute(context);
+        t.parseScript("a += 17").execute(context);
+        Assert.assertEquals(117, context.getVariable("a"));
+        t.parseScript("a -= 'hello'.length()").execute(context);
+        Assert.assertEquals(112, context.getVariable("a"));
+        t.parseScript("a /= (([3,4,5][0])-1)").execute(context);
+        Assert.assertEquals(56, context.getVariable("a"));
+        t.parseScript("a *= -3").execute(context);
+        Assert.assertEquals(-168, context.getVariable("a"));
+        t.parseScript("a = 'blah';a += 'z'; a += 'foo'").execute(context);
+        Assert.assertEquals("blahzfoo", context.getVariable("a"));
+    }
+
+    public static class SideEffectTester {
+        private int a = 0;
+        private int getCalls = 0;
+        private int setCalls = 0;
+
+        public int getA() {
+            getCalls++;
+            return a;
+        }
+
+        public void setA(int a) {
+            setCalls++;
+            this.a = a;
+        }
+    }
+    @Test
+    public void testSelfAssignmentSideEffects() throws TwistException {
+        ScriptContext context = new SimpleScriptContext();
+        TwistEngine t = new TwistEngine();
+
+        SideEffectTester testData = new SideEffectTester();
+        context.setVariable("foo", testData);
+        t.parseScript("foo.a += 10").execute(context);
+        t.parseScript("foo.a -= 3").execute(context);
+        Assert.assertEquals(7, testData.a);
+        Assert.assertEquals(2, testData.setCalls);
+        Assert.assertEquals(2, testData.getCalls);
+    }
 }
