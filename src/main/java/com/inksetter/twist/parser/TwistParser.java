@@ -572,58 +572,67 @@ public class TwistParser {
     protected Expression buildJsonObject() throws ScriptSyntaxException {
         scan.next();
         Map<String, Expression> object = new LinkedHashMap<>();
-        while (true) {
-            String fieldName;
-            switch (scan.tokenType()) {
-                case SINGLE_STRING:
-                case DOUBLE_STRING:
-                    String unquoted = scan.current().getValue();
-                    fieldName = dequote(unquoted);
-                    break;
-                case IDENTIFIER:
-                    fieldName = scan.current().getValue();
-                    break;
-                default:
-                    throw parseException("field");
-            }
+        if (scan.tokenType() == TwistTokenType.CLOSE_BRACE) {
             scan.next();
-            if (scan.tokenType() != TwistTokenType.COLON) {
-                throw parseException("colon");
-            }
-            scan.next();
-            Expression value = buildFullExpression();
-            object.put(fieldName, value);
-
-            if (scan.tokenType() == TwistTokenType.CLOSE_BRACE) {
+        }
+        else {
+            while (true) {
+                String fieldName;
+                switch (scan.tokenType()) {
+                    case SINGLE_STRING:
+                    case DOUBLE_STRING:
+                        String unquoted = scan.current().getValue();
+                        fieldName = dequote(unquoted);
+                        break;
+                    case IDENTIFIER:
+                        fieldName = scan.current().getValue();
+                        break;
+                    default:
+                        throw parseException("field");
+                }
                 scan.next();
-                break;
-            }
+                if (scan.tokenType() != TwistTokenType.COLON) {
+                    throw parseException("colon");
+                }
+                scan.next();
+                Expression value = buildFullExpression();
+                object.put(fieldName, value);
 
-            if (scan.tokenType() != TwistTokenType.COMMA) {
-                throw parseException("comma");
-            }
+                if (scan.tokenType() == TwistTokenType.CLOSE_BRACE) {
+                    scan.next();
+                    break;
+                }
 
-            // Skip the comma;
-            scan.next();
+                if (scan.tokenType() != TwistTokenType.COMMA) {
+                    throw parseException("comma");
+                }
+                // Skip the comma;
+                scan.next();
+            }
         }
         return new ObjectExpression(object);
     }
     protected Expression buildJsonArray() throws ScriptSyntaxException {
         scan.next();
         List<Expression> array = new ArrayList<>();
-        while (true) {
-            Expression value = buildFullExpression();
-            array.add(value);
-
-            if (scan.tokenType() == TwistTokenType.CLOSE_BRACKET) {
-                scan.next();
-                break;
-            }
-
-            if (scan.tokenType() != TwistTokenType.COMMA) {
-                throw parseException("comma");
-            }
+        if (scan.tokenType() == TwistTokenType.CLOSE_BRACKET) {
             scan.next();
+        }
+        else {
+            while (true) {
+                Expression value = buildFullExpression();
+                array.add(value);
+
+                if (scan.tokenType() == TwistTokenType.CLOSE_BRACKET) {
+                    scan.next();
+                    break;
+                }
+
+                if (scan.tokenType() != TwistTokenType.COMMA) {
+                    throw parseException("comma");
+                }
+                scan.next();
+            }
         }
         return new ArrayExpression(array);
     }

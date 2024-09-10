@@ -175,6 +175,10 @@ public class TwistCoreTest {
         Assert.assertTrue(aaa instanceof Map);
         Assert.assertEquals(900, ((Map<String, Object>)aaa).get("a"));
         Assert.assertEquals(900, context.getVariable("bbb"));
+        engine.parseScript("ccc = {}").execute(context);
+        Object ccc = context.getVariable("ccc");
+        Assert.assertTrue(ccc instanceof Map);
+        Assert.assertEquals(0, ((Map<?, ?>) ccc).size());
     }
 
     @Test
@@ -222,6 +226,11 @@ public class TwistCoreTest {
         Assert.assertTrue(bbb instanceof List);
         Assert.assertEquals(2, ((List<Object>)aaa).get(1));
         Assert.assertEquals("hello", ((List<Object>)bbb).get(3));
+        engine.parseScript("empty = []").execute(context);
+        Object empty = context.getVariable("empty");
+        Assert.assertTrue(empty instanceof List);
+        Assert.assertEquals(0, ((List<?>) empty).size());
+
     }
 
     @Test
