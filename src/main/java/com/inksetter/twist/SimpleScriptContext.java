@@ -27,6 +27,16 @@ public class SimpleScriptContext implements ScriptContext {
     }
 
     @Override
+    public boolean isDefined(String name) {
+        for (Map<String, Object> symbols : varStack) {
+            if (symbols.containsKey(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public Object getVariable(String name) {
         for (Map<String, Object> symbols : varStack) {
             if (symbols.containsKey(name)) {

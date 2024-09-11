@@ -3,6 +3,7 @@ package com.inksetter.twist.expression;
 import com.inksetter.twist.EvalContext;
 import com.inksetter.twist.Expression;
 import com.inksetter.twist.TwistException;
+import com.inksetter.twist.ValueUtils;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -15,43 +16,50 @@ import java.util.List;
 public class MethodCallExpression implements Expression {
 
     public MethodCallExpression(Expression target, String methodName, List<Expression> methodArgs) {
-        _target = target;
-        _methodName = methodName;
-        _methodArgs = methodArgs;
+        this.target = target;
+        this.methodName = methodName;
+        this.methodArgs = methodArgs;
     }
 
     @Override
     public Object evaluate(EvalContext ctx) throws TwistException {
-        Object obj = _target.evaluate(ctx);
+        Object obj = target.evaluate(ctx);
         if (obj == null) {
-            throw new NullValueException(_target.toString());
+            throw new NullValueException(target.toString());
         }
 
-        Object[] argValues = new Object[_methodArgs.size()];
-        for (int i = 0; i < _methodArgs.size(); i++) {
-            Expression a = _methodArgs.get(i);
+        Object[] argValues = new Object[methodArgs.size()];
+        for (int i = 0; i < methodArgs.size(); i++) {
+            Expression a = methodArgs.get(i);
             argValues[i] = a.evaluate(ctx);
         }
 
         try {
             BeanInfo info = Introspector.getBeanInfo(obj.getClass());
             for (MethodDescriptor desc : info.getMethodDescriptors()) {
-                String methodName = desc.getName();
 
-                if (_methodName.equals(desc.getName())) {
+                if (methodName.equals(desc.getName())) {
                     Method method = desc.getMethod();
                     if (method.getParameterCount() == argValues.length) {
-                        try {
-                            return method.invoke(obj, argValues);
+                        Class<?>[] types = method.getParameterTypes();
+                        boolean matching = true;
+                        for (int i = 0; i < types.length && matching; i++) {
+                            if (argValues[i] != null && !ValueUtils.isCompatible(types[i], argValues[i].getClass())) {
+                                matching = false;
+                            }
                         }
-                        catch (IllegalArgumentException e) {
-                            throw new TwistException("Unable to call method " + _methodName + ":" + e.getMessage(), e);
+                        if (matching) {
+                            try {
+                                return method.invoke(obj, argValues);
+                            } catch (IllegalArgumentException e) {
+                                throw new TwistException("Unable to call method " + methodName + ":" + e.getMessage(), e);
+                            }
                         }
                     }
                 }
             }
 
-            throw new UnrecognizedMethodException(_methodName);
+            throw new UnrecognizedMethodException(methodName);
         } catch (IntrospectionException e) {
             throw new TwistException("Unable to find properties of " + obj, e);
         } catch (InvocationTargetException | IllegalAccessException e) {
@@ -62,10 +70,10 @@ public class MethodCallExpression implements Expression {
     // @see java.lang.Object#toString()
     @Override
     public String toString() {
-        return _target + "." + _methodName;
+        return target + "." + methodName;
     }
 
-    private final Expression _target;
-    private final String _methodName;
-    private final List<Expression> _methodArgs;
+    private final Expression target;
+    private final String methodName;
+    private final List<Expression> methodArgs;
 }

@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
 public class ValueUtils {
     // Set up a double formatter that has no decimal point if it's not needed
@@ -70,7 +71,7 @@ public class ValueUtils {
         }
 
         if (value instanceof String) {
-            return Long.valueOf((String)value);
+            return Long.parseLong((String)value);
         }
 
         if (value instanceof Boolean) {
@@ -88,7 +89,7 @@ public class ValueUtils {
         }
 
         if (value instanceof String) {
-            return Integer.valueOf((String)value);
+            return Integer.parseInt((String)value);
         }
 
         if (value instanceof Boolean) {
@@ -175,6 +176,23 @@ public class ValueUtils {
         else {
             return asSafeString(left).compareTo(asSafeString(right));
         }
+    }
+    private final static Map<Class<?>, Class<?>> primitiveMap = Map.of(
+            boolean.class, Boolean.class,
+            byte.class, Byte.class,
+            char.class, Character.class,
+            double.class, Double.class,
+            float.class, Float.class,
+            int.class, Integer.class,
+            long.class, Long.class,
+            short.class, Short.class
+    );
+
+    public static boolean isCompatible(Class<?> type, Class<?> valueClass) {
+        if (type.isAssignableFrom(valueClass)) {
+            return true;
+        }
+        return type.isPrimitive() && valueClass == primitiveMap.get(type);
     }
     
     //

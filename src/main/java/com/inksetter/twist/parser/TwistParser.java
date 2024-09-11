@@ -641,9 +641,10 @@ public class TwistParser {
     protected Expression buildFunctionExpression(String functionName) throws ScriptSyntaxException {
         // This method only gets called if parentheses have been seen
         List<Expression> functionArgs = getFunctionArgs();
-        TwistFunction func = engine != null ? engine.lookupFunction(functionName) : null;
-        if (func == null) {
-            func = _BUILTINS.get(functionName.toLowerCase());
+        TwistFunction func = _BUILTINS.get(functionName.toLowerCase());
+
+        if (func == null && engine != null) {
+            func = engine.lookupFunction(functionName);
         }
 
         if (func == null) {

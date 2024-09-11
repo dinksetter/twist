@@ -13,6 +13,11 @@ public class MapContext implements EvalContext {
     }
 
     @Override
+    public boolean isDefined(String name) {
+        return values.containsKey(name);
+    }
+
+    @Override
     public Object getVariable(String name) {
         return values.get(name);
     }
