@@ -27,5 +27,8 @@ public class MapContext implements EvalContext {
         values.put(name, value);
     }
 
-
+    @Override
+    public Map<String, Object> getAll() {
+        return values;
+    }
 }

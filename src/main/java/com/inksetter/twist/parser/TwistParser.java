@@ -547,7 +547,12 @@ public class TwistParser {
             String unquoted = scan.current().getValue();
             scan.next();
             return new StringLiteral(dequote(unquoted));
-            
+
+        case MULTI_STRING:
+            String rawMultiline = scan.current().getValue();
+            scan.next();
+            return new StringLiteral(cleanupMultiline(rawMultiline));
+
         case NULL_TOKEN:
             scan.next();
             return new LiteralExpression(TwistDataType.STRING, null);
@@ -718,6 +723,24 @@ public class TwistParser {
         } while (startpos < endpos);
         
         return buf.toString();
+    }
+
+    protected String cleanupMultiline(String raw) {
+        String temp = raw.substring(3, raw.length() - 3);
+        int firstNewline = temp.indexOf('\n');
+        if (firstNewline != -1) {
+            int c = firstNewline + 1;
+            while (c < temp.length() && Character.isWhitespace(temp.charAt(c))) {
+                c++;
+            }
+            String whitespaceToIgnore = temp.substring(firstNewline, c);
+            temp = temp.replace(whitespaceToIgnore, "\n");
+        }
+
+        if (firstNewline == 0) {
+            temp = temp.substring(1);
+        }
+        return temp;
     }
 
     protected String getIdentifier(String expect) throws ScriptSyntaxException {

@@ -7,8 +7,8 @@ import com.inksetter.twist.exec.StatementBlock;
 import com.inksetter.twist.Expression;
 import com.inksetter.twist.expression.AssignmentExpression;
 import com.inksetter.twist.expression.FunctionExpression;
+import com.inksetter.twist.expression.StringLiteral;
 import com.inksetter.twist.expression.function.TwistFunction;
-import com.inksetter.twist.expression.operators.arith.MultiplyExpression;
 import org.junit.Test;
 
 import java.util.List;
@@ -82,5 +82,43 @@ public class TwistParserTest {
         statement = statements.get(1);
         expr = ((ExpressionStatement)statement).getExpression();
         assertTrue(expr instanceof FunctionExpression);
+    }
+
+    @Test
+    public void testStringLiterals() throws ScriptSyntaxException {
+        validateStringLiteral("\"\"", "");
+        validateStringLiteral("\"hell's kitchen\"", "hell's kitchen");
+        validateStringLiteral("'hell''s kitchen'", "hell's kitchen");
+        validateStringLiteral("\"a\nb\nc\"", "a\nb\nc");
+    }
+    @Test
+    public void testMultilineString() throws ScriptSyntaxException {
+        validateStringLiteral("\"\"\"\"\"\"", "");
+        validateStringLiteral("\"\"\" hello\"\"\"", " hello");
+        validateStringLiteral("\"\"\"\n" +
+                "    this\n" +
+                "    is\n" +
+                "    a\n" +
+                "    test\n" +
+                "    \"\"\"\n", "this\nis\na\ntest\n");
+        validateStringLiteral("\"\"\"\n" +
+                        "        line1\n" +
+                        "\tline2\n" +
+                        "        line3\n" +
+                        "        \"\"\"\n",
+                "line1\n\tline2\nline3\n"
+                );
+    }
+
+    private void validateStringLiteral(String raw, String expected) throws ScriptSyntaxException {
+        StatementBlock parsed = (StatementBlock) new TwistParser(raw).parseScript();
+        List<Statement> statements = parsed.getStatements();
+        assertEquals(1, statements.size());
+        Statement statement = statements.get(0);
+        Expression expr = ((ExpressionStatement)statement).getExpression();
+        assertTrue(expr instanceof StringLiteral);
+        String result = ((StringLiteral) expr).evaluate(null);
+
+        assertEquals(expected, result);
     }
 }

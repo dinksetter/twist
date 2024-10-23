@@ -56,4 +56,11 @@ public class SimpleScriptContext implements ScriptContext {
         }
         varStack.getFirst().put(name, value);
     }
+
+    @Override
+    public Map<String, Object> getAll() {
+        Map<String,Object> vars = new LinkedHashMap<>();
+        varStack.forEach(vars::putAll);
+        return vars;
+    }
 }

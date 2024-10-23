@@ -161,7 +161,15 @@ public class TwistLexer {
             switch (c) {
             case '\'':
             case '"':
-                return new TwistToken(readStringLiteral(c), begin, startOfToken);
+                if (hasNext(2) && peekChar(1) == c && peekChar(2) == c) {
+                    // Skip over the next two characters
+                    nextChar();
+                    nextChar();
+                    return new TwistToken(readMultiLineString(c), begin, startOfToken);
+                }
+                else {
+                    return new TwistToken(readStringLiteral(c), begin, startOfToken);
+                }
             case '.':
                 return new TwistToken(TwistTokenType.DOT, begin, startOfToken);
             case ';':
@@ -393,6 +401,21 @@ public class TwistLexer {
             return TwistTokenType.DOUBLE_STRING;
         }
     }
+
+    private TwistTokenType readMultiLineString(char lookfor) throws ScriptTokenException {
+        char c;
+
+        do {
+            c = nextChar();
+
+            if (c == lookfor && hasNext(2) && peekChar(1) == lookfor && peekChar(2) == lookfor) {
+                nextChar();
+                nextChar();
+                return TwistTokenType.MULTI_STRING;
+            }
+        } while (hasNext());
+        throw new ScriptTokenException(line + 1, linePos + 1, "unexpected end of string");
+    }
     
     private void skipWhitespace() throws ScriptTokenException {
         while (pos < length && Character.isWhitespace(peekChar())) {
@@ -418,9 +441,16 @@ public class TwistLexer {
     private char peekChar() {
         return in.charAt(pos);
     }
-    
+
+    private char peekChar(int ahead) {
+        return in.charAt(pos + (ahead - 1));
+    }
+
     private boolean hasNext() {
         return pos < length;
     }
 
+    private boolean hasNext(int ahead) {
+        return (pos + (ahead - 1)) < length;
+    }
 }
