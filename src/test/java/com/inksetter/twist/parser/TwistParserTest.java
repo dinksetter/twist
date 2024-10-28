@@ -21,13 +21,36 @@ public class TwistParserTest {
 
     @Test
     public void testEmptyScript() {
-        try {
-            StatementBlock parsed = (StatementBlock) new TwistParser("").parseScript();
-            fail("Expected parse exception, got [" + parsed + "]");
-        }
-        catch (ScriptSyntaxException e) {
-            // Normal
-        }
+        testPrematureEndOfScript("");
+    }
+
+    @Test
+    public void testPrematureEnd() {
+        testPrematureEndOfScript("x = ");
+        testPrematureEndOfScript("700 +");
+        testPrematureEndOfScript("a = { x :");
+        testPrematureEndOfScript("b = function(\"abc\", ");
+    }
+
+    @Test
+    public void testUnfinishedString() {
+        String script = "'unmatched";
+        ScriptSyntaxException e = assertThrows(ScriptSyntaxException.class, () -> new TwistParser(script).parseScript());
+        assertEquals(script.length(), e.getPos());
+    }
+
+    @Test
+    public void testUnfinishedComment() {
+        String script = "/* comment";
+        ScriptSyntaxException e = assertThrows(ScriptSyntaxException.class, () -> new TwistParser(script).parseScript());
+        assertEquals(script.length(), e.getPos());
+    }
+
+
+    private void testPrematureEndOfScript(String script) {
+        UnexpectedTokenException e = assertThrows(UnexpectedTokenException.class, () -> new TwistParser(script).parseScript());
+        assertEquals(script.length(), e.getPos());
+        assertEquals(TwistTokenType.END, e.getToken());
     }
 
     @Test

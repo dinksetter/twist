@@ -1,6 +1,7 @@
 package com.inksetter.twist;
 
 import com.inksetter.twist.expression.function.TwistFunction;
+import com.inksetter.twist.parser.ScriptSyntaxException;
 import com.inksetter.twist.parser.TwistParser;
 
 import java.util.HashMap;
@@ -14,7 +15,6 @@ public class TwistEngine {
     }
 
     public TwistEngine() {
-        ;
     }
 
     public void addFunction(String name, TwistFunction function) {
@@ -29,7 +29,7 @@ public class TwistEngine {
         return new TwistParser(expr, this).parseExpression();
     }
 
-    public Script parseScript(String script) throws TwistException {
+    public Script parseScript(String script) throws ScriptSyntaxException {
         return new TwistParser(script, this).parseScript();
     }
 }

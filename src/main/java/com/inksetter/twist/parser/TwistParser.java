@@ -45,7 +45,7 @@ public class TwistParser {
         StatementBlock seq = buildScript();
         
         if (scan.tokenType() != TwistTokenType.END) {
-            throw new ScriptSyntaxException(scan.getLine() + 1, scan.getLinePos() + 1, "Unexpected token: " + scan.current());
+            throw parseException(TwistTokenType.END);
         }
 
         return seq;
@@ -88,7 +88,7 @@ public class TwistParser {
     protected Expression buildIfExpression() throws ScriptSyntaxException {
         scan.next();
         if (scan.tokenType() != TwistTokenType.OPEN_PAREN) {
-            throw parseException("(");
+            throw parseException(TwistTokenType.OPEN_PAREN);
         }
         
         scan.next();
@@ -102,7 +102,7 @@ public class TwistParser {
             Expression ifTest = buildIfExpression();
 
             if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
-                throw parseException(")");
+                throw parseException(TwistTokenType.CLOSE_PAREN);
             }
             scan.next();
 
@@ -119,7 +119,7 @@ public class TwistParser {
 
             // We expect braces here, but we want this to be
             if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
-                throw parseException("{");
+                throw parseException(TwistTokenType.OPEN_BRACE);
             }
 
             // Don't scan the brace.  Let the main block parser do that.
@@ -137,38 +137,56 @@ public class TwistParser {
         else if (scan.tokenType() == TwistTokenType.FOR) {
             scan.next();
             if (scan.tokenType() != TwistTokenType.OPEN_PAREN) {
-                throw parseException("(");
+                throw parseException(TwistTokenType.OPEN_PAREN);
             }
             scan.next();
             Expression initial = buildFullExpression();
-            if (scan.tokenType() != TwistTokenType.SEMICOLON) {
-                throw parseException(";");
-            }
-            scan.next();
-            Expression test = buildFullExpression();
-            if (scan.tokenType() != TwistTokenType.SEMICOLON) {
-                throw parseException(";");
-            }
-            scan.next();
-            Expression end = buildFullExpression();
-            if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
-                throw parseException(")");
-            }
-            scan.next();
 
-            Statement body = buildStatement();
-            stmt = new ForStatement(initial, test, end, body);
+            // Two forms:
+            //   - for (x : list-expression) ...
+            //   - for (expr; expr; expr) ...
+            if (initial instanceof Assignable && scan.tokenType() == TwistTokenType.COLON) {
+                scan.next();
+                Expression listExpression = buildFullExpression();
+                if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+                    throw parseException(TwistTokenType.CLOSE_PAREN);
+                }
+                scan.next();
+
+                Statement body = buildStatement();
+                stmt = new ForListStatement((Assignable) initial, listExpression, body);
+            }
+            else {
+                if (scan.tokenType() != TwistTokenType.SEMICOLON) {
+                    throw parseException(TwistTokenType.SEMICOLON);
+                }
+                scan.next();
+                Expression test = buildFullExpression();
+                if (scan.tokenType() != TwistTokenType.SEMICOLON) {
+                    throw parseException(TwistTokenType.SEMICOLON);
+                }
+                scan.next();
+                Expression end = buildFullExpression();
+
+                if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
+                    throw parseException(TwistTokenType.CLOSE_PAREN);
+                }
+                scan.next();
+
+                Statement body = buildStatement();
+                stmt = new ForStatement(initial, test, end, body);
+            }
         }
         else if (scan.tokenType() == TwistTokenType.DEF) {
             scan.next();
             String functionName = getIdentifier("Function");
             scan.next();
             if (scan.tokenType() != TwistTokenType.OPEN_PAREN) {
-                throw parseException("(");
+                throw parseException(TwistTokenType.OPEN_PAREN);
             }
             List<String> argNames = getFunctionArgDef();
             if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
-                throw parseException("{");
+                throw parseException(TwistTokenType.OPEN_BRACE);
             }
             StatementBlock functionBlock = buildSubSequence();
 
@@ -200,7 +218,7 @@ public class TwistParser {
             CatchBlock block = new CatchBlock();
             scan.next();
             if (scan.tokenType() != TwistTokenType.OPEN_PAREN) {
-                throw parseException("(");
+                throw parseException(TwistTokenType.OPEN_PAREN);
             }
             scan.next();
 
@@ -211,12 +229,12 @@ public class TwistParser {
             scan.next();
 
             if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
-                throw parseException(")");
+                throw parseException(TwistTokenType.CLOSE_PAREN);
             }
             scan.next();
             
             if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
-                throw parseException("{");
+                throw parseException(TwistTokenType.OPEN_BRACE);
             }
             
             scan.next();
@@ -229,7 +247,7 @@ public class TwistParser {
             }
             
             if (scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
-                throw parseException("}");
+                throw parseException(TwistTokenType.CLOSE_BRACE);
             }
 
             scan.next();
@@ -251,7 +269,7 @@ public class TwistParser {
                     scan.next();
                 }
                 else if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
-                    throw parseException(")");
+                    throw parseException(TwistTokenType.CLOSE_PAREN);
                 }
             }
             scan.next();
@@ -263,14 +281,14 @@ public class TwistParser {
 
     protected StatementBlock buildSubSequence() throws ScriptSyntaxException {
         if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
-            throw parseException("{");
+            throw parseException(TwistTokenType.OPEN_BRACE);
         }
 
         scan.next();
         StatementBlock seq = buildScript();
         
         if (scan.tokenType() != TwistTokenType.CLOSE_BRACE) {
-            throw parseException("}");
+            throw parseException(TwistTokenType.CLOSE_BRACE);
         }
         scan.next();
         
@@ -335,7 +353,7 @@ public class TwistParser {
         else if (oper == TwistTokenType.NOT) {
             scan.next();
             if (scan.tokenType() != TwistTokenType.LIKE) {
-                throw parseException("LIKE");
+                throw parseException(TwistTokenType.LIKE);
             }
             scan.next();
             expr  = new NotLikeExpression(expr, buildExpressionTerm());
@@ -369,7 +387,7 @@ public class TwistParser {
             Expression ternaryIf = expr;
             Expression ternaryThen = buildFullExpression();
             if (scan.tokenType() != TwistTokenType.COLON) {
-                throw parseException(":");
+                throw parseException(TwistTokenType.COLON);
             }
             scan.next();
             Expression ternaryElse = buildFullExpression();
@@ -424,7 +442,7 @@ public class TwistParser {
             if (scan.tokenType() == TwistTokenType.DOT) {
                 scan.next();
                 if (scan.tokenType() != TwistTokenType.IDENTIFIER) {
-                    throw parseException("identifier");
+                    throw parseException(TwistTokenType.IDENTIFIER);
                 }
                 String identifier = scan.current().getValue();
                 scan.next();
@@ -440,7 +458,7 @@ public class TwistParser {
                 scan.next();
                 Expression element = buildFullExpression();
                 if (scan.tokenType() != TwistTokenType.CLOSE_BRACKET) {
-                    throw parseException("]");
+                    throw parseException(TwistTokenType.CLOSE_BRACKET);
                 }
                 scan.next();
                 expr = new ElementExpression(expr, element);
@@ -449,7 +467,7 @@ public class TwistParser {
 
         if (ASSIGNMENT_OPERS.contains(scan.tokenType())) {
             if (!(expr instanceof Assignable)) {
-                throw parseException("Cannot assign to expression");
+                throw parseException("illegal assignment");
             }
             TwistTokenType oper = scan.tokenType();
             scan.next();
@@ -471,6 +489,12 @@ public class TwistParser {
                     break;
                 case PERCENTASSIGN:
                     expr = new AssignmentExpression((Assignable) expr, new ModExpression(expr, buildFullExpression()));
+                    break;
+                case INCREMENT:
+                    expr = new IncrementExpression((Assignable) expr, true);
+                    break;
+                case DECREMENT:
+                    expr = new IncrementExpression((Assignable) expr, false);
                     break;
             }
         }
@@ -497,7 +521,7 @@ public class TwistParser {
             scan.next();
             Expression subExpression = buildFullExpression();
             if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
-                throw parseException(")");
+                throw parseException(TwistTokenType.CLOSE_PAREN);
             }
             scan.next();
             return subExpression;
@@ -507,7 +531,7 @@ public class TwistParser {
         case PLUS:
             scan.next();
             if (scan.tokenType() != TwistTokenType.NUMBER) {
-                throw parseException("<NUMBER>");
+                throw parseException(TwistTokenType.NUMBER);
             }
             // Pass through
         case NUMBER:
@@ -535,7 +559,7 @@ public class TwistParser {
                 }
             }
             catch (NumberFormatException e) {
-                throw parseException("NUMERIC");
+                throw parseException(TwistTokenType.NUMBER);
             }
             
             scan.next();
@@ -571,7 +595,11 @@ public class TwistParser {
         }
 
         // Now, we've failed to find an expression.
-        throw parseException("expression");
+        throw parseException(TwistTokenType.BANG, TwistTokenType.IDENTIFIER, TwistTokenType.OPEN_PAREN,
+                TwistTokenType.MINUS, TwistTokenType.PLUS, TwistTokenType.NUMBER,
+                TwistTokenType.SINGLE_STRING, TwistTokenType.DOUBLE_STRING, TwistTokenType.MULTI_STRING,
+                TwistTokenType.NULL_TOKEN, TwistTokenType.TRUE, TwistTokenType.FALSE, TwistTokenType.OPEN_BRACE,
+                TwistTokenType.OPEN_BRACKET);
     }
 
     protected Expression buildJsonObject() throws ScriptSyntaxException {
@@ -593,11 +621,11 @@ public class TwistParser {
                         fieldName = scan.current().getValue();
                         break;
                     default:
-                        throw parseException("field");
+                        throw parseException(TwistTokenType.SINGLE_STRING);
                 }
                 scan.next();
                 if (scan.tokenType() != TwistTokenType.COLON) {
-                    throw parseException("colon");
+                    throw parseException(TwistTokenType.COLON);
                 }
                 scan.next();
                 Expression value = buildFullExpression();
@@ -609,7 +637,7 @@ public class TwistParser {
                 }
 
                 if (scan.tokenType() != TwistTokenType.COMMA) {
-                    throw parseException("comma");
+                    throw parseException(TwistTokenType.COMMA);
                 }
                 // Skip the comma;
                 scan.next();
@@ -634,7 +662,7 @@ public class TwistParser {
                 }
 
                 if (scan.tokenType() != TwistTokenType.COMMA) {
-                    throw parseException("comma");
+                    throw parseException(TwistTokenType.COMMA);
                 }
                 scan.next();
             }
@@ -646,41 +674,45 @@ public class TwistParser {
     protected Expression buildFunctionExpression(String functionName) throws ScriptSyntaxException {
         // This method only gets called if parentheses have been seen
         List<Expression> functionArgs = getFunctionArgs();
-        TwistFunction func = _BUILTINS.get(functionName.toLowerCase());
+        TwistFunction func = BUILTINS.get(functionName.toLowerCase());
 
         if (func == null && engine != null) {
             func = engine.lookupFunction(functionName);
         }
 
         if (func == null) {
-            throw new ScriptSyntaxException(scan.getLine() + 1, scan.getLinePos() + 1, "invalid function: " + functionName);
+            throw parseException("unrecognized function: " + functionName);
         }
 
         return new FunctionExpression(functionName, functionArgs, func);
     }
 
-    private static final EnumSet<TwistTokenType> ASSIGNMENT_OPERS = EnumSet.of(TwistTokenType.ASSIGNMENT, TwistTokenType.PLUSASSIGN, TwistTokenType.MINUSASSIGN, TwistTokenType.STARASSIGN, TwistTokenType.SLASHASSIGN, TwistTokenType.PERCENTASSIGN);
-    private final static Map<String, TwistFunction> _BUILTINS = new HashMap<>();
+    private static final EnumSet<TwistTokenType> ASSIGNMENT_OPERS = EnumSet.of(
+            TwistTokenType.ASSIGNMENT, TwistTokenType.PLUSASSIGN, TwistTokenType.MINUSASSIGN,
+            TwistTokenType.STARASSIGN, TwistTokenType.SLASHASSIGN, TwistTokenType.PERCENTASSIGN,
+            TwistTokenType.INCREMENT, TwistTokenType.DECREMENT);
+
+    private final static Map<String, TwistFunction> BUILTINS = new HashMap<>();
     static {
-        _BUILTINS.put("date", new DateFunction());
-        _BUILTINS.put("string", new StringFunction());
-        _BUILTINS.put("int", new IntFunction());
-        _BUILTINS.put("double", new DoubleFunction());
-        _BUILTINS.put("upper", new UpperFunction());
-        _BUILTINS.put("lower", new LowerFunction());
-        _BUILTINS.put("trim", new TrimFunction());
-        _BUILTINS.put("len", new LengthFunction());
-        _BUILTINS.put("length", new LengthFunction());
-        _BUILTINS.put("sprintf", new SprintfFunction());
-        _BUILTINS.put("min", new MinFunction());
-        _BUILTINS.put("max", new MaxFunction());
-        _BUILTINS.put("substr", new SubstrFunction());
-        _BUILTINS.put("json", new JsonFunction());
-        _BUILTINS.put("instr", new IndexOfFunction());
-        _BUILTINS.put("b64decode", new Base64DecodeFunction());
-        _BUILTINS.put("b64encode", new Base64EncodeFunction());
-        _BUILTINS.put("now", new NowFunction());
-        _BUILTINS.put("type", new TypeFunction());
+        BUILTINS.put("date", new DateFunction());
+        BUILTINS.put("string", new StringFunction());
+        BUILTINS.put("int", new IntFunction());
+        BUILTINS.put("double", new DoubleFunction());
+        BUILTINS.put("upper", new UpperFunction());
+        BUILTINS.put("lower", new LowerFunction());
+        BUILTINS.put("trim", new TrimFunction());
+        BUILTINS.put("len", new LengthFunction());
+        BUILTINS.put("length", new LengthFunction());
+        BUILTINS.put("sprintf", new SprintfFunction());
+        BUILTINS.put("min", new MinFunction());
+        BUILTINS.put("max", new MaxFunction());
+        BUILTINS.put("substr", new SubstrFunction());
+        BUILTINS.put("json", new JsonFunction());
+        BUILTINS.put("instr", new IndexOfFunction());
+        BUILTINS.put("b64decode", new Base64DecodeFunction());
+        BUILTINS.put("b64encode", new Base64EncodeFunction());
+        BUILTINS.put("now", new NowFunction());
+        BUILTINS.put("type", new TypeFunction());
     }
 
     private List<Expression> getFunctionArgs() throws ScriptSyntaxException {
@@ -694,7 +726,7 @@ public class TwistParser {
                     scan.next();
                 }
                 else if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {
-                    throw parseException(")");
+                    throw parseException(TwistTokenType.CLOSE_PAREN);
                 }
             }
             scan.next();
@@ -748,12 +780,14 @@ public class TwistParser {
             return scan.current().getValue();
         }
 
-        throw parseException(expect);
-    }
-    
-    protected ScriptSyntaxException parseException(String expected) {
-        return new ScriptSyntaxException(scan.getLine() + 1, scan.getLinePos() + 1,
-                "Expected: " + expected + ", got " + scan.current());
+        throw parseException(TwistTokenType.IDENTIFIER);
     }
 
+    protected ScriptSyntaxException parseException(String problem) {
+        return new ScriptSyntaxException(scan, problem);
+    }
+
+    protected ScriptSyntaxException parseException(TwistTokenType... expectedTokens) {
+        return new UnexpectedTokenException(scan, expectedTokens);
+    }
 }

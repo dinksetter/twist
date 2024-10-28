@@ -1,7 +1,6 @@
 package com.inksetter.twist;
 
 import com.inksetter.twist.exec.ScriptContext;
-import com.inksetter.twist.expression.function.TwistFunction;
 import com.inksetter.twist.parser.ScriptSyntaxException;
 import com.inksetter.twist.parser.TwistParser;
 import org.junit.Assert;
@@ -9,11 +8,13 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static org.junit.Assert.assertEquals;
+
 public class TwistCoreTest {
 
-    private List<String> functionCalls = new ArrayList<>();
-    private List<List<Object>> functionArgs = new ArrayList<>();
-    private TwistEngine engine = new TwistEngine(Map.of("print", args -> {
+    private final List<String> functionCalls = new ArrayList<>();
+    private final List<List<Object>> functionArgs = new ArrayList<>();
+    private final TwistEngine engine = new TwistEngine(Map.of("print", args -> {
         functionCalls.add("print");
         functionArgs.add(args);
         return 3.2;
@@ -386,4 +387,22 @@ public class TwistCoreTest {
         Assert.assertEquals(2, testData.setCalls);
         Assert.assertEquals(2, testData.getCalls);
     }
+
+    @Test
+    public void testForLoop() throws TwistException {
+        ScriptContext context = new SimpleScriptContext();
+        TwistEngine t = new TwistEngine();
+        String script = "b = 30; for (a = 0; a < 10; a++) { b += 2 }";
+        t.parseScript(script).execute(context);
+        assertEquals(50, context.getVariable("b"));
+    }
+    @Test
+    public void testForList() throws TwistException {
+        ScriptContext context = new SimpleScriptContext();
+        TwistEngine t = new TwistEngine();
+        String script = "b = 30; for (a : [0,1,2,3,4]) { b += 2 }";
+        t.parseScript(script).execute(context);
+        assertEquals(40, context.getVariable("b"));
+    }
+
 }

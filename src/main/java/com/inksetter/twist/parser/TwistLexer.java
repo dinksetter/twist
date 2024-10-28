@@ -107,7 +107,11 @@ public class TwistLexer {
      * @return the line position (in characters) of the current token
      */
     public int getLinePos() {
-        return linePos - (pos - currentToken._beginToken);
+        return linePos - (pos - (currentToken != null ? currentToken._beginToken : 0));
+    }
+
+    public int getPos() {
+        return pos;
     }
     
     /**
@@ -181,7 +185,7 @@ public class TwistLexer {
                     return new TwistToken(TwistTokenType.OR, begin, startOfToken);
                 }
                 else {
-                    throw new ScriptTokenException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
+                    throw new ScriptTokenException(this, "Unrecognized identifier: " + c);
                 }
             case '&':
                 if (hasNext() && peekChar() == '&') {
@@ -190,7 +194,7 @@ public class TwistLexer {
                     return new TwistToken(TwistTokenType.AND, begin, startOfToken);
                 }
                 else {
-                    throw new ScriptTokenException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
+                    throw new ScriptTokenException(this, "Unrecognized identifier: " + c);
                 }
             case '(':
                 return new TwistToken(TwistTokenType.OPEN_PAREN, begin, startOfToken);
@@ -217,6 +221,10 @@ public class TwistLexer {
                     nextChar();
                     return new TwistToken(TwistTokenType.PLUSASSIGN, begin, startOfToken);
                 }
+                else if (hasNext() && peekChar() == '+') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.INCREMENT, begin, startOfToken);
+                }
                 else {
                     return new TwistToken(TwistTokenType.PLUS, begin, startOfToken);
                 }
@@ -224,6 +232,10 @@ public class TwistLexer {
                 if (hasNext() && peekChar() == '=') {
                     nextChar();
                     return new TwistToken(TwistTokenType.MINUSASSIGN, begin, startOfToken);
+                }
+                else if (hasNext() && peekChar() == '-') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.DECREMENT, begin, startOfToken);
                 }
                 else {
                     return new TwistToken(TwistTokenType.MINUS, begin, startOfToken);
@@ -317,7 +329,7 @@ public class TwistLexer {
                     return new TwistToken(TwistTokenType.BANG, begin, startOfToken);
                 }
             default:
-                throw new ScriptTokenException(line + 1, linePos + 1, "Unrecognized identifier: " + c);
+                throw new ScriptTokenException(this, "Unrecognized identifier: " + c);
             }
         }
     }
@@ -414,7 +426,7 @@ public class TwistLexer {
                 return TwistTokenType.MULTI_STRING;
             }
         } while (hasNext());
-        throw new ScriptTokenException(line + 1, linePos + 1, "unexpected end of string");
+        throw new ScriptTokenException(this, "unexpected end of string");
     }
     
     private void skipWhitespace() throws ScriptTokenException {
@@ -425,7 +437,7 @@ public class TwistLexer {
     
     private char nextChar() throws ScriptTokenException {
         if (pos >= length) {
-            throw new ScriptTokenException(line + 1, linePos + 1, "Unexpected end of text");
+            throw new ScriptTokenException(this, "Unexpected end of text");
         }
         linePos++;
         char next = in.charAt(pos++);

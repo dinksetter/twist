@@ -3,8 +3,14 @@ package com.inksetter.twist.parser;
 import com.inksetter.twist.TwistException;
 
 public class ScriptSyntaxException extends TwistException {
+    private final int pos;
 
-    public ScriptSyntaxException(int line, int linePos, String detail) {
-        super("Syntax error at line " + line + "." + linePos + ": " + detail);
+    ScriptSyntaxException(TwistLexer scan, String message) {
+        super("Syntax error at line " + scan.getLine() + "." + scan.getLinePos() + ": " + message);
+        this.pos = scan.getPos();
+    }
+
+    public int getPos() {
+        return pos;
     }
 }
