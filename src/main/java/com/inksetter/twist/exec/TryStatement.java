@@ -1,8 +1,6 @@
 package com.inksetter.twist.exec;
 
-import com.inksetter.twist.Expression;
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.ValueUtils;
 
 import java.util.List;
 
@@ -24,24 +22,24 @@ public class TryStatement implements Statement {
         } catch (Exception e) {
             if (catchBlocks != null) {
                 // If we're set up to catch errors, do so.
-                String exceptionClassName = e.getClass().getTypeName();
+                Class<? extends Exception> caughtClass = e.getClass();
+                Class<?>[] allClasses = caughtClass.getClasses();
                 for (CatchBlock catchBlock : catchBlocks) {
+                    for (Class cls = caughtClass; cls != null; cls = cls.getSuperclass()) {
+                        if (catchBlock.getTypeName().equals(cls.getSimpleName())) {
 
-                    boolean matches = exceptionClassName.equals(catchBlock.getTypeName());
+                            // We execute the catch block, if it exists. If it's a
+                            // simple catch expression, then
+                            // we return the error results of the exception that got
+                            // thrown.
+                            StatementBlock block = catchBlock.getBlock();
 
-                    if (matches) {
-                        // We execute the catch block, if it exists. If it's a
-                        // simple catch expression, then
-                        // we return the error results of the exception that got
-                        // thrown.
-                        StatementBlock block = catchBlock.getBlock();
-
-                        // If there's a block of code to execute on this catch
-                        // expression, return the result of executing that
-                        // block.
-                        if (block != null) {
-                            block.execute(exec, true);
-                            break;
+                            // If there's a block of code to execute on this catch
+                            // expression, return the result of executing that
+                            // block.
+                            if (block != null) {
+                                return block.execute(exec, true);
+                            }
                         }
                     }
                 }
