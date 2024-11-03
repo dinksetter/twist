@@ -282,12 +282,19 @@ public class TwistLexer {
                 if (hasNext() && peekChar() == '=') {
                     // This is to go over the = character
                     nextChar();
-                    return new TwistToken(TwistTokenType.EQ, begin, startOfToken);
+                    if (hasNext() && peekChar() == '~') {
+                        // This is to go over the = character
+                        nextChar();
+                        return new TwistToken(TwistTokenType.MATCH, begin, startOfToken);
+                    }
+                    else {
+                        return new TwistToken(TwistTokenType.EQ, begin, startOfToken);
+                    }
                 }
                 else if (hasNext() && peekChar() == '~') {
                     // This is to go over the = character
                     nextChar();
-                    return new TwistToken(TwistTokenType.MATCH, begin, startOfToken);
+                    return new TwistToken(TwistTokenType.FIND, begin, startOfToken);
                 }
                 else {
                     return new TwistToken(TwistTokenType.ASSIGNMENT, begin, startOfToken);

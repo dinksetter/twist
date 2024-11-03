@@ -7,6 +7,7 @@ import com.inksetter.twist.exec.StatementBlock;
 import com.inksetter.twist.Expression;
 import com.inksetter.twist.expression.AssignmentExpression;
 import com.inksetter.twist.expression.FunctionExpression;
+import com.inksetter.twist.expression.ReferenceExpression;
 import com.inksetter.twist.expression.StringLiteral;
 import com.inksetter.twist.expression.function.TwistFunction;
 import org.junit.Test;
@@ -72,7 +73,7 @@ public class TwistParserTest {
                 "b = callFunction(a, 'String');\n" +
                 "if (a == b && c != true) print('WOW');\n";
 
-        StatementBlock parsed = (StatementBlock) new TwistParser(script, new TwistEngine(functions)).parseScript();
+        StatementBlock parsed = (StatementBlock) new TwistParser(script).parseScript();
         List<Statement> statements = parsed.getStatements();
         assertEquals(3, statements.size());
     }
@@ -95,7 +96,7 @@ public class TwistParserTest {
         String script =
                 "a = 1000 * func('var' + b);" +
                 "func2(a);";
-        StatementBlock parsed = (StatementBlock) new TwistParser(script, new TwistEngine(functions)).parseScript();
+        StatementBlock parsed = (StatementBlock) new TwistParser(script).parseScript();
         List<Statement> statements = parsed.getStatements();
         assertEquals(2, statements.size());
         Statement statement = statements.get(0);
@@ -143,5 +144,23 @@ public class TwistParserTest {
         String result = ((StringLiteral) expr).evaluate(null);
 
         assertEquals(expected, result);
+    }
+
+    @Test
+    public void testBareWordFunction() throws ScriptSyntaxException {
+        Map<String, TwistFunction> functions = Map.of(
+                "func", args -> "call [" + args + "]",
+                "func2", args -> "call2 [" + args + "]");
+        String script = "func\n" +
+                "func2(1,2,3)";
+        StatementBlock parsed = (StatementBlock) new TwistParser(script).parseScript();
+        List<Statement> statements = parsed.getStatements();
+        assertEquals(2, statements.size());
+        Statement statement = statements.get(0);
+        Expression expr = ((ExpressionStatement)statement).getExpression();
+        assertTrue(expr instanceof ReferenceExpression);
+        Statement statement2 = statements.get(1);
+        Expression expr2 = ((ExpressionStatement)statement2).getExpression();
+        assertTrue(expr2 instanceof FunctionExpression);
     }
 }

@@ -1,19 +1,22 @@
 package com.inksetter.twist;
 
 import com.inksetter.twist.exec.ScriptContext;
+import com.inksetter.twist.expression.function.TwistFunction;
 
 import java.util.*;
 
 public class SimpleScriptContext implements ScriptContext {
 
     private final Deque<Map<String, Object>> varStack = new LinkedList<>();
+    private final Map<String, TwistFunction> functions = new HashMap<>();
 
     public SimpleScriptContext() {
         varStack.addFirst(new LinkedHashMap<>());
     }
 
-    public SimpleScriptContext(Map<String,Object> initial) {
+    public SimpleScriptContext(Map<String,Object> initial, Map<String, TwistFunction> functions) {
         varStack.addFirst(new LinkedHashMap<>(initial));
+        this.functions.putAll(functions);
     }
 
     @Override
@@ -63,4 +66,16 @@ public class SimpleScriptContext implements ScriptContext {
         varStack.forEach(vars::putAll);
         return vars;
     }
+
+    @Override
+    public TwistFunction lookupFunction(String name) {
+        return functions.get(name);
+    }
+
+    @Override
+    public void addFunction(String name, TwistFunction function) {
+        functions.put(name, function);
+    }
+
+
 }

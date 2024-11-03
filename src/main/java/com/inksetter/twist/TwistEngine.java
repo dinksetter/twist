@@ -8,22 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TwistEngine {
-    private final Map<String, TwistFunction> functions = new HashMap<>();
-
-    public TwistEngine(Map<String, TwistFunction> functions) {
-        this.functions.putAll(functions);
-    }
-
-    public TwistEngine() {
-    }
-
-    public void addFunction(String name, TwistFunction function) {
-        functions.put(name, function);
-    }
-
-    public TwistFunction lookupFunction(String name) {
-        return functions.get(name);
-    }
 
     public Expression parseExpression(String expr) throws TwistException {
         return new TwistParser(expr, this).parseExpression();
