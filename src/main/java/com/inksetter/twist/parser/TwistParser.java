@@ -28,7 +28,6 @@ import java.util.Map;
  */
 public class TwistParser {
     protected final TwistLexer scan;
-    private final TwistEngine engine;
 
     public TwistParser(CharSequence script) {
         this(script, null);
@@ -36,7 +35,6 @@ public class TwistParser {
 
     public TwistParser(CharSequence script, TwistEngine engine) {
         scan = new TwistLexer(script);
-        this.engine = engine;
     }
 
     public Script parseScript() throws ScriptSyntaxException {
@@ -191,17 +189,15 @@ public class TwistParser {
             StatementBlock functionBlock = buildSubSequence();
 
             UserDefFunction newFunc = new UserDefFunction(functionName, argNames, functionBlock);
-            if (engine != null) {
-                engine.addFunction(functionName, newFunc);
-            }
 
-            stmt = new NullStatement();
+            stmt = new DefFunctionStatement(functionName, newFunc);
         }
         else if (scan.tokenType() == TwistTokenType.OPEN_BRACE) {
             stmt = new BlockStatement(buildSubSequence());
         }
         else {
-            stmt = new ExpressionStatement(buildFullExpression());
+            Expression fullExpression = buildFullExpression();
+            stmt = new ExpressionStatement(fullExpression);
         }
 
         return stmt;
@@ -346,9 +342,17 @@ public class TwistParser {
             scan.next();
             expr  = new LikeExpression(expr, buildExpressionTerm());
         }
+        else if (oper == TwistTokenType.FIND) {
+            scan.next();
+            expr  = new RegexFindExpression(expr, buildExpressionTerm());
+        }
         else if (oper == TwistTokenType.MATCH) {
             scan.next();
             expr  = new RegexMatchExpression(expr, buildExpressionTerm());
+        }
+        else if (oper == TwistTokenType.NMATCH) {
+            scan.next();
+            expr  = new RegexNoMatchExpression(expr, buildExpressionTerm());
         }
         else if (oper == TwistTokenType.NOT) {
             scan.next();
@@ -674,46 +678,15 @@ public class TwistParser {
     protected Expression buildFunctionExpression(String functionName) throws ScriptSyntaxException {
         // This method only gets called if parentheses have been seen
         List<Expression> functionArgs = getFunctionArgs();
-        TwistFunction func = BUILTINS.get(functionName.toLowerCase());
 
-        if (func == null && engine != null) {
-            func = engine.lookupFunction(functionName);
-        }
 
-        if (func == null) {
-            throw parseException("unrecognized function: " + functionName);
-        }
-
-        return new FunctionExpression(functionName, functionArgs, func);
+        return new FunctionExpression(functionName, functionArgs);
     }
 
     private static final EnumSet<TwistTokenType> ASSIGNMENT_OPERS = EnumSet.of(
             TwistTokenType.ASSIGNMENT, TwistTokenType.PLUSASSIGN, TwistTokenType.MINUSASSIGN,
             TwistTokenType.STARASSIGN, TwistTokenType.SLASHASSIGN, TwistTokenType.PERCENTASSIGN,
             TwistTokenType.INCREMENT, TwistTokenType.DECREMENT);
-
-    private final static Map<String, TwistFunction> BUILTINS = new HashMap<>();
-    static {
-        BUILTINS.put("date", new DateFunction());
-        BUILTINS.put("string", new StringFunction());
-        BUILTINS.put("int", new IntFunction());
-        BUILTINS.put("double", new DoubleFunction());
-        BUILTINS.put("upper", new UpperFunction());
-        BUILTINS.put("lower", new LowerFunction());
-        BUILTINS.put("trim", new TrimFunction());
-        BUILTINS.put("len", new LengthFunction());
-        BUILTINS.put("length", new LengthFunction());
-        BUILTINS.put("sprintf", new SprintfFunction());
-        BUILTINS.put("min", new MinFunction());
-        BUILTINS.put("max", new MaxFunction());
-        BUILTINS.put("substr", new SubstrFunction());
-        BUILTINS.put("json", new JsonFunction());
-        BUILTINS.put("instr", new IndexOfFunction());
-        BUILTINS.put("b64decode", new Base64DecodeFunction());
-        BUILTINS.put("b64encode", new Base64EncodeFunction());
-        BUILTINS.put("now", new NowFunction());
-        BUILTINS.put("type", new TypeFunction());
-    }
 
     private List<Expression> getFunctionArgs() throws ScriptSyntaxException {
         List<Expression> functionArgs = new ArrayList<>();
