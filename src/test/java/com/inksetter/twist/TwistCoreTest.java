@@ -466,4 +466,24 @@ public class TwistCoreTest {
         Object result = t.parseScript(script).execute(context);
         assertEquals("BOOMMM", result);
     }
+
+    @Test
+    public void testReturn() throws TwistException {
+        ScriptContext context = new SimpleScriptContext();
+        TwistEngine t = new TwistEngine();
+        String script = """
+                x = 1000;
+                y = "no";
+                if (x > 200) {
+                   y = "yes";
+                   return "BAM!";
+                }
+                x = 200;
+                """;
+
+        Object result = t.parseScript(script).execute(context);
+        assertEquals("BAM!", result);
+        assertEquals(1000, context.getVariable("x"));
+        assertEquals("yes", context.getVariable("y"));
+    }
 }

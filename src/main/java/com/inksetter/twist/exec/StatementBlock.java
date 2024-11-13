@@ -22,20 +22,24 @@ public class StatementBlock implements Script, Serializable {
 
     @Override
     public Object execute(ScriptContext exec) throws TwistException {
-        return execute(exec, false);
+        return execute(exec, false).getValue();
     }
     
-    public Object execute(ScriptContext exec, boolean newStack) throws TwistException {
+    public StatementResult execute(ScriptContext exec, boolean newStack) throws TwistException {
         if (newStack) exec.pushStack();
-        Object lastValue = null;
+        StatementResult lastValue = null;
         try {
             for (Statement statement : statements) {
                 lastValue = statement.execute(exec);
+                if (lastValue.getType() == StatementResult.Type.RETURN) {
+                    return lastValue;
+                }
             }
         }
         finally {
             if (newStack) exec.popStack();
         }
+
         return lastValue;
     }
 

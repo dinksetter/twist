@@ -16,7 +16,7 @@ public class ForListStatement implements Statement {
         this.body = body;
     }
 
-    public Object execute(ScriptContext exec) throws TwistException {
+    public StatementResult execute(ScriptContext exec) throws TwistException {
         exec.pushStack();
         try {
             Object list = listExpr.evaluate(exec);
@@ -24,7 +24,10 @@ public class ForListStatement implements Statement {
             if (list instanceof Iterable<?>) {
                 for (Object value : ((Iterable<?>) list)) {
                     variable.assignValue(exec, value);
-                    body.execute(exec);
+                    StatementResult result = body.execute(exec);
+                    if (result.getType() == StatementResult.Type.RETURN) {
+                        return result;
+                    }
                 }
             }
             else {
@@ -35,6 +38,6 @@ public class ForListStatement implements Statement {
             exec.popStack();
         }
 
-        return null;
+        return StatementResult.valueResult(null);
     }
 }

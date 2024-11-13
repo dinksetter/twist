@@ -4,9 +4,6 @@ import com.inksetter.twist.Expression;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.ValueUtils;
 
-import java.io.Serializable;
-import java.util.List;
-
 public class IfStatement implements Statement {
     private final Expression ifTest;
     private final Statement ifStatement;
@@ -19,16 +16,16 @@ public class IfStatement implements Statement {
     }
 
     @Override
-    public Object execute(ScriptContext exec) throws TwistException {
+    public StatementResult execute(ScriptContext exec) throws TwistException {
         Object testValue = ifTest.evaluate(exec);
         if (ValueUtils.asBoolean(testValue)) {
-            ifStatement.execute(exec);
+            return ifStatement.execute(exec);
         }
         else if (elseStatement != null) {
-            elseStatement.execute(exec);
+            return elseStatement.execute(exec);
         }
 
-        // If statements do not have value, just side effects.
+        // If statements not executed have a null value
         return null;
     }
 }

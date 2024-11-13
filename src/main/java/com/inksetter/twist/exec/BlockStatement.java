@@ -10,7 +10,7 @@ public class BlockStatement implements Statement {
     }
 
     @Override
-    public Object execute(ScriptContext exec) throws TwistException {
+    public StatementResult execute(ScriptContext exec) throws TwistException {
         return mainBlock.execute(exec, true);
     }
 }

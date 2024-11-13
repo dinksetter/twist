@@ -96,7 +96,12 @@ public class TwistParser {
     protected Statement buildStatement() throws ScriptSyntaxException {
         Statement stmt;
 
-        if (scan.tokenType() == TwistTokenType.IF) {
+        if (scan.tokenType() == TwistTokenType.RETURN) {
+            scan.next();
+            Expression returnExpr = buildFullExpression();
+            stmt = new ReturnStatement(returnExpr);
+        }
+        else if (scan.tokenType() == TwistTokenType.IF) {
             Expression ifTest = buildIfExpression();
 
             if (scan.tokenType() != TwistTokenType.CLOSE_PAREN) {

@@ -30,6 +30,7 @@ public class TwistLexer {
         RESERVED.put("true", TwistTokenType.TRUE);
         RESERVED.put("false", TwistTokenType.FALSE);
         RESERVED.put("catch", TwistTokenType.CATCH);
+        RESERVED.put("return", TwistTokenType.RETURN);
         RESERVED.put("def", TwistTokenType.DEF);
         RESERVED.put("finally", TwistTokenType.FINALLY);
     }

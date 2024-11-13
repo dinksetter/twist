@@ -17,14 +17,17 @@ public class ForStatement implements Statement {
         this.body = body;
     }
 
-    public Object execute(ScriptContext exec) throws TwistException {
+    public StatementResult execute(ScriptContext exec) throws TwistException {
         for (initial.evaluate(exec);
              ValueUtils.asBoolean(testExpr.evaluate(exec));
              endExpr.evaluate(exec)) {
-            body.execute(exec);
+            StatementResult result = body.execute(exec);
+            if (result.getType() == StatementResult.Type.RETURN) {
+                return result;
+            }
         }
 
         // for statements do not have value, just side effects.
-        return null;
+        return StatementResult.valueResult(null);
     }
 }
