@@ -80,6 +80,7 @@ public class FunctionExpression implements Expression {
         BUILTINS.put("substr", new SubstrFunction());
         BUILTINS.put("indexof", new IndexOfFunction());
         BUILTINS.put("eval", new EvalFunction());
+        BUILTINS.put("json", new JsonFunction());
         BUILTINS.put("b64decode", new Base64DecodeFunction());
         BUILTINS.put("b64encode", new Base64EncodeFunction());
         BUILTINS.put("now", new NowFunction());

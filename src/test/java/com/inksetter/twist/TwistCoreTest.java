@@ -528,4 +528,28 @@ public class TwistCoreTest {
         assertEquals(1000, context.getVariable("x"));
         assertEquals("yes", context.getVariable("y"));
     }
+
+    @Test
+    public void testJsonFunction() throws TwistException {
+        MapContext vars = new MapContext();
+        TwistEngine t = new TwistEngine();
+        Expression e = t.parseExpression("json(x)");
+        Object result;
+        vars.setVariable("x", "str");
+        result = e.evaluate(vars);
+        assertEquals("\"str\"", result);
+        vars.setVariable("x", 1000);
+        result = e.evaluate(vars);
+        assertEquals("1000", result);
+        Map<String, Object> obj = new LinkedHashMap<String, Object>();
+        obj.put("aaa", "value");
+        obj.put("bbb", -2);
+        obj.put("ccc", List.of("1", "2", "3"));
+        vars.setVariable("x", obj);
+        result = e.evaluate(vars);
+        assertEquals("{\"aaa\":\"value\",\"bbb\":-2,\"ccc\":[\"1\",\"2\",\"3\"]}", result);
+        obj.put("ddd", null);
+        result = e.evaluate(vars);
+        assertEquals("{\"aaa\":\"value\",\"bbb\":-2,\"ccc\":[\"1\",\"2\",\"3\"],\"ddd\":null}", result);
+    }
 }
