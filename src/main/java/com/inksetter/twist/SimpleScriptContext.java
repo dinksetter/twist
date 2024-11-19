@@ -22,16 +22,26 @@ public class SimpleScriptContext implements ScriptContext {
     @Override
     public void popStack() {
         varStack.removeFirst();
+        if (!varStack.isEmpty() && varStack.peekFirst() == null) {
+            varStack.removeFirst();
+        }
     }
 
     @Override
-    public void pushStack() {
+    public void pushStack(boolean fresh) {
+        if (fresh) {
+            varStack.addFirst(null);
+        }
+
         varStack.addFirst(new LinkedHashMap<>());
     }
 
     @Override
     public boolean isDefined(String name) {
         for (Map<String, Object> symbols : varStack) {
+            if (symbols == null) {
+                return false;
+            }
             if (symbols.containsKey(name)) {
                 return true;
             }
@@ -52,7 +62,10 @@ public class SimpleScriptContext implements ScriptContext {
     @Override
     public void setVariable(String name, Object value) {
         for (Map<String, Object> symbols : varStack) {
-            if (symbols.containsKey(name)) {
+            if (symbols == null) {
+                break;
+            }
+            else if (symbols.containsKey(name)) {
                 symbols.put(name, value);
                 return;
             }

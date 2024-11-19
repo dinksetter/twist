@@ -40,7 +40,7 @@ public class FunctionExpression implements Expression {
             argValues.add(arg.evaluate(ctx));
         }
 
-        return func.invoke(argValues);
+        return func.invoke(argValues, ctx);
     }
     
     // @see java.lang.Object#toString()

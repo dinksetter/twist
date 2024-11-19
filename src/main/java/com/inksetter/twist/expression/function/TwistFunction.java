@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.function;
 
+import com.inksetter.twist.EvalContext;
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.Expression;
 
 import java.util.List;
 
@@ -17,9 +17,10 @@ public interface TwistFunction {
      * been evaluated. The value of those arguments are passed into the
      * <code>invoke</code> method as the <code>args</code> parameter.
      *
-     * @param args Arguments to the function call.
+     * @param args    Arguments to the function call.
+     * @param context
      * @return a single value.
      * @throws TwistException if an error occurs.
      */
-    Object invoke(List<Object> args) throws TwistException;
+    Object invoke(List<Object> args, EvalContext context) throws TwistException;
 }

@@ -8,7 +8,7 @@ import com.inksetter.twist.expression.function.TwistFunction;
 public interface ScriptContext extends EvalContext {
     void popStack();
 
-    void pushStack();
+    void pushStack(boolean fresh);
 
     void addFunction(String name, TwistFunction function);
 }

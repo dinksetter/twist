@@ -1,5 +1,6 @@
 package com.inksetter.twist.expression.function;
 
+import com.inksetter.twist.EvalContext;
 import com.inksetter.twist.ValueUtils;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 public class MaxFunction extends BaseFunction {
 
     @Override
-    public Object invoke(List<Object> args) {
+    public Object invoke(List<Object> args, EvalContext context) {
         Object maxValue = null;
 
         for (Object a : args) {

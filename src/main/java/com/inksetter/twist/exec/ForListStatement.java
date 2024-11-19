@@ -17,7 +17,7 @@ public class ForListStatement implements Statement {
     }
 
     public StatementResult execute(ScriptContext exec) throws TwistException {
-        exec.pushStack();
+        exec.pushStack(false);
         try {
             Object list = listExpr.evaluate(exec);
 

@@ -1,6 +1,5 @@
 package com.inksetter.twist.parser;
 
-import com.inksetter.twist.TwistEngine;
 import com.inksetter.twist.exec.ExpressionStatement;
 import com.inksetter.twist.exec.Statement;
 import com.inksetter.twist.exec.StatementBlock;
@@ -67,7 +66,7 @@ public class TwistParserTest {
 
     @Test
     public void testMultipleStatements() throws ScriptSyntaxException {
-        Map<String, TwistFunction> functions = Map.of("callFunction", args -> null, "print", args -> "PRINT");
+        Map<String, TwistFunction> functions = Map.of("callFunction", (args, context) -> null, "print", (args, context) -> "PRINT");
         String script =
                 "a = 100;\n" +
                 "b = callFunction(a, 'String');\n" +
@@ -91,7 +90,7 @@ public class TwistParserTest {
 
     @Test
     public void testFunctionCall() throws ScriptSyntaxException {
-        Map<String, TwistFunction> functions = Map.of("func", args -> null, "func2", args -> null);
+        Map<String, TwistFunction> functions = Map.of("func", (args, context) -> null, "func2", (args, context) -> null);
 
         String script =
                 "a = 1000 * func('var' + b);" +
@@ -149,8 +148,8 @@ public class TwistParserTest {
     @Test
     public void testBareWordFunction() throws ScriptSyntaxException {
         Map<String, TwistFunction> functions = Map.of(
-                "func", args -> "call [" + args + "]",
-                "func2", args -> "call2 [" + args + "]");
+                "func", (args, context) -> "call [" + args + "]",
+                "func2", (args, context) -> "call2 [" + args + "]");
         String script = "func\n" +
                 "func2(1,2,3)";
         StatementBlock parsed = (StatementBlock) new TwistParser(script).parseScript();

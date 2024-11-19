@@ -1,7 +1,7 @@
 package com.inksetter.twist.expression.function;
 
+import com.inksetter.twist.EvalContext;
 import com.inksetter.twist.TwistException;
-import com.inksetter.twist.Expression;
 
 import java.util.List;
 
@@ -13,9 +13,10 @@ public abstract class BaseFunction implements TwistFunction {
      * Invokes the function implementation with all arguments evaluated.
      *
      * @param argValues Pre-evaluated arguments to the function call.
+     * @param context
      * @return a single value.
      * @throws TwistException if an error occurred during function execution.
      */
-    public abstract Object invoke(List<Object> argValues) throws TwistException;
+    public abstract Object invoke(List<Object> argValues, EvalContext context) throws TwistException;
 
 }

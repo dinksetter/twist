@@ -26,7 +26,7 @@ public class StatementBlock implements Script, Serializable {
     }
     
     public StatementResult execute(ScriptContext exec, boolean newStack) throws TwistException {
-        if (newStack) exec.pushStack();
+        if (newStack) exec.pushStack(false);
         StatementResult lastValue = null;
         try {
             for (Statement statement : statements) {
