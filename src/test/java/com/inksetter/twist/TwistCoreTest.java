@@ -9,8 +9,7 @@ import org.junit.Test;
 
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class TwistCoreTest {
 
@@ -23,6 +22,27 @@ public class TwistCoreTest {
         functionArgs.add(args);
         return 3.2;
     });
+
+    @Test
+    public void testEmptyScript() throws TwistException {
+        ScriptContext context = new SimpleScriptContext(Map.of(), functions);
+        String script = "";
+        Script parsed = engine.parseScript(script);
+        assertNull(engine.parseScript(script).execute(context));
+
+        script = "/* comment only */";
+        assertNull(engine.parseScript(script).execute(context));
+
+        script = "// single-line comment";
+        assertNull(engine.parseScript(script).execute(context));
+
+        script = """
+                // single-line comment";
+                // comment line two
+                """;
+
+        assertNull(engine.parseScript(script).execute(context));
+    }
 
     @Test
     public void testMultipleStatements() throws TwistException {
@@ -48,6 +68,32 @@ public class TwistCoreTest {
         String script = """
                 a = 100
                 b = a + 4
+                print('WOW ' + b)
+                """;
+
+        Script parsed = engine.parseScript(script);
+        ScriptContext context = new SimpleScriptContext(Map.of(), functions);
+        parsed.execute(context);
+        Assert.assertEquals(100, context.getVariable("a"));
+        Assert.assertEquals(104, context.getVariable("b"));
+        Assert.assertEquals(1, functionCalls.size());
+        Assert.assertEquals(1, functionArgs.size());
+        Assert.assertEquals("print", functionCalls.get(0));
+        Assert.assertEquals("WOW 104", functionArgs.get(0).get(0));
+    }
+
+    @Test
+    public void testMultipleStatementsNoSemicolonsPlusComments() throws TwistException {
+        String script = """
+                // set a to 100
+                a = 100
+                
+                // Add 4, then store it in b
+                b = a + 4
+                
+                /*
+                 * Call the print() function
+                 */
                 print('WOW ' + b)
                 """;
 

@@ -1,6 +1,7 @@
 package com.inksetter.twist.parser;
 
 import com.inksetter.twist.exec.ExpressionStatement;
+import com.inksetter.twist.exec.NullStatement;
 import com.inksetter.twist.exec.Statement;
 import com.inksetter.twist.exec.StatementBlock;
 import com.inksetter.twist.Expression;
@@ -17,11 +18,12 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 public class TwistParserTest {
-    
 
     @Test
-    public void testEmptyScript() {
-        testPrematureEndOfScript("");
+    public void testEmptyScript() throws ScriptSyntaxException {
+        StatementBlock parsed = (StatementBlock) new TwistParser("").parseScript();
+        List<Statement> statements = parsed.getStatements();
+        assertEquals(0, statements.size());
     }
 
     @Test
@@ -114,6 +116,26 @@ public class TwistParserTest {
         validateStringLiteral("'hell''s kitchen'", "hell's kitchen");
         validateStringLiteral("\"a\nb\nc\"", "a\nb\nc");
     }
+
+    @Test
+    public void testSingleLineComment() throws ScriptSyntaxException {
+        String script = """
+                // blah blah blah
+                // more blah
+                """;
+        StatementBlock parsed = (StatementBlock) new TwistParser(script).parseScript();
+        List<Statement> statements = parsed.getStatements();
+        assertEquals(0, statements.size());
+    }
+
+    @Test
+    public void testSingleLineCommentNoNewline() throws ScriptSyntaxException {
+        String script = "// blah blah";
+        StatementBlock parsed = (StatementBlock) new TwistParser(script).parseScript();
+        List<Statement> statements = parsed.getStatements();
+        assertEquals(0, statements.size());
+    }
+
     @Test
     public void testMultilineString() throws ScriptSyntaxException {
         validateStringLiteral("\"\"\"\"\"\"", "");

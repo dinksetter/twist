@@ -60,10 +60,15 @@ public class TwistParser {
 
     protected StatementBlock buildScript() throws ScriptSyntaxException {
         StatementBlock sequence = new StatementBlock();
-        
+
+        // If empty braces or an empty script occurs, create a single null statement.
+        if (scan.tokenType() == TwistTokenType.CLOSE_BRACE || scan.tokenType() == TwistTokenType.END) {
+            return sequence;
+        }
+
         Statement statement = buildStatement();
         sequence.addStatement(statement);
-        
+
         while (scan.tokenType() == TwistTokenType.SEMICOLON || scan.current().getLeadingWhitespace().contains("\n")) {
             // Skip the semicolon. Whitespace rules will take care of the newline end of statement.
             if (scan.tokenType() == TwistTokenType.SEMICOLON) {

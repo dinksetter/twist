@@ -40,7 +40,7 @@ public class StatementBlock implements Script, Serializable {
             if (newStack) exec.popStack();
         }
 
-        return lastValue;
+        return lastValue == null ? StatementResult.valueResult(null) : lastValue;
     }
 
     // @see java.lang.Object#toString()

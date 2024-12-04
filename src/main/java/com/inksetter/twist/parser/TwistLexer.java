@@ -262,6 +262,14 @@ public class TwistLexer {
                     nextChar();
                     return new TwistToken(TwistTokenType.COMMENT, begin, startOfToken);
                 }
+                else if (hasNext() && peekChar() == '/') {
+                    // This is to go over the / character
+                    nextChar();
+                    while (hasNext() && peekChar() != '\n') {
+                        nextChar();
+                    }
+                    return new TwistToken(TwistTokenType.COMMENT, begin, startOfToken);
+                }
                 else if (hasNext() && peekChar() == '=') {
                     nextChar();
                     return new TwistToken(TwistTokenType.SLASHASSIGN, begin, startOfToken);
