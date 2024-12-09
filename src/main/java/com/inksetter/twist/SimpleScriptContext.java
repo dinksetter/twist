@@ -52,6 +52,9 @@ public class SimpleScriptContext implements ScriptContext {
     @Override
     public Object getVariable(String name) {
         for (Map<String, Object> symbols : varStack) {
+            if (symbols == null) {
+                break;
+            }
             if (symbols.containsKey(name)) {
                 return symbols.get(name);
             }
@@ -76,7 +79,13 @@ public class SimpleScriptContext implements ScriptContext {
     @Override
     public Map<String, Object> getAll() {
         Map<String,Object> vars = new LinkedHashMap<>();
-        varStack.forEach(vars::putAll);
+        for (Map<String, Object> symbols : varStack) {
+            if (symbols == null) {
+                break;
+            }
+
+            vars.putAll(symbols);
+        }
         return vars;
     }
 

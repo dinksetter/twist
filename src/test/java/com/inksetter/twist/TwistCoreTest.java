@@ -17,11 +17,19 @@ public class TwistCoreTest {
     private final List<List<Object>> functionArgs = new ArrayList<>();
     private final TwistEngine engine = new TwistEngine();
 
-    private final Map<String, TwistFunction> functions = Map.of("print", (args, context) -> {
-        functionCalls.add("print");
-        functionArgs.add(args);
-        return 3.2;
-    });
+    private final Map<String, TwistFunction> functions = Map.of(
+            "print", (args, context) -> {
+                functionCalls.add("print");
+                functionArgs.add(args);
+                return 3.2;
+            },
+            "enumerate", (args, context) -> {
+                return context.getAll();
+            },
+            "lookup", (args, context) -> {
+                return context.getVariable(args.get(0).toString());
+            });
+
 
     @Test
     public void testEmptyScript() throws TwistException {
@@ -430,6 +438,80 @@ public class TwistCoreTest {
         Assert.assertEquals("apple", foo[1]);
         Assert.assertEquals("zoinks", bar.get(0));
     }
+
+    @Test
+    public void testEnumerate() throws TwistException {
+        String[] foo = new String[] {"one","two","three"};
+        List<String> bar = new ArrayList<>(List.of("first", "second", "third"));
+
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", foo, "bar", bar), functions);
+        TwistEngine t = new TwistEngine();
+        Object result = t.parseScript("return enumerate()").execute(context);
+
+        assertTrue(result instanceof Map);
+        Map<String, String> resultMap = (Map<String, String>) result;
+        assertTrue(resultMap.containsKey("foo"));
+        assertTrue(resultMap.containsKey("bar"));
+    }
+
+    @Test
+    public void testEnumerateInsideFunction() throws TwistException {
+        String[] foo = new String[] {"one","two","three"};
+        List<String> bar = new ArrayList<>(List.of("first", "second", "third"));
+
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", foo, "bar", bar), functions);
+        TwistEngine t = new TwistEngine();
+        String script = """
+                def myFunc(xxx) {
+                    return enumerate()
+                }
+                return myFunc("test")
+                """;
+        Object result = t.parseScript(script).execute(context);
+
+        assertTrue(result instanceof Map);
+        Map<String, String> resultMap = (Map<String, String>) result;
+        assertFalse(resultMap.containsKey("foo"));
+        assertFalse(resultMap.containsKey("bar"));
+        assertEquals("test", resultMap.get("xxx"));
+    }
+
+    @Test
+    public void testLookupInsideFunction() throws TwistException {
+        String[] foo = new String[] {"one","two","three"};
+        List<String> bar = new ArrayList<>(List.of("first", "second", "third"));
+
+        TwistEngine t = new TwistEngine();
+        String script = """
+                def myFunc(xxx) {
+                    baz = "yes";
+                    return lookup(xxx)
+                }
+                baz = "i am baz";
+                return myFunc(blah)
+                """;
+        Script s = t.parseScript(script);
+
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", "i am foo", "bar", "i am bar"), functions);
+
+        context.setVariable("blah", "foo");
+        Object result = s.execute(context);
+        assertNull(result);
+
+        context.setVariable("blah", "bar");
+        result = s.execute(context);
+        assertNull(result);
+
+        context.setVariable("blah", "baz");
+        result = s.execute(context);
+        assertEquals("yes", result);
+
+        context.setVariable("blah", "xxx");
+        result = s.execute(context);
+        assertEquals("xxx", result);
+
+    }
+
 
     @Test
     public void testChainedAssignment() throws TwistException {
