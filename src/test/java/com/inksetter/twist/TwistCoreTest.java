@@ -136,7 +136,7 @@ public class TwistCoreTest {
                             "b = a + 4 " +
                             "print('WOW ' + b)";
 
-            Script parsed = engine.parseScript(script);
+            engine.parseScript(script);
             fail("expected parser error");
         } catch (ScriptSyntaxException e) {
             // Normal
@@ -159,10 +159,19 @@ public class TwistCoreTest {
     public void testDateArithmetic() throws TwistException{
         ScriptContext context = new SimpleScriptContext();
         engine.parseScript("a = now(); b = a - 4.4; c = b - a; d = b + 8").execute(context);
-        System.out.println(context.getVariable("a"));
-        System.out.println(context.getVariable("b"));
-        System.out.println(context.getVariable("c"));
-        System.out.println(context.getVariable("d"));
+        assertTrue(context.getVariable("a") instanceof Date);
+        assertTrue(context.getVariable("b") instanceof Date);
+        assertTrue(context.getVariable("c") instanceof Double);
+        assertTrue(context.getVariable("d") instanceof Date);
+        Date a = (Date) context.getVariable("a");
+        Date b = (Date) context.getVariable("b");
+        Double c = (Double) context.getVariable("c");
+        Date d = (Date) context.getVariable("d");
+
+        assertTrue(a.compareTo(b) > 0);
+        assertTrue(a.compareTo(d) < 0);
+        assertTrue(b.compareTo(d) < 0);
+        assertEquals(4.4, c, 0.01);
     }
 
     public static class TestClass {
@@ -496,9 +505,9 @@ public class TwistCoreTest {
 
         context.setVariable("blah", "foo");
         Object result = s.execute(context);
-        assertNull(result);
+        assertEquals("i am foo", result);
 
-        context.setVariable("blah", "bar");
+        context.setVariable("blah", "fooz");
         result = s.execute(context);
         assertNull(result);
 
@@ -509,8 +518,49 @@ public class TwistCoreTest {
         context.setVariable("blah", "xxx");
         result = s.execute(context);
         assertEquals("xxx", result);
-
     }
+
+    @Test
+    public void testLookupAcrossFunctions() throws TwistException {
+        String[] foo = new String[] {"one","two","three"};
+        List<String> bar = new ArrayList<>(List.of("first", "second", "third"));
+
+        TwistEngine t = new TwistEngine();
+        String script = """
+                def myFunc(yyy) {
+                    baz2 = "yes too";
+                    return lookup(yyy)
+                }
+                
+                def myFun2(xxx) {
+                    baz = "yes";
+                    return myFunc(xxx)
+                }
+                baz = "i am baz";
+                return myFun2(blah)
+                """;
+        Script s = t.parseScript(script);
+
+        ScriptContext context = new SimpleScriptContext(Map.of("foo", "i am foo", "bar", "i am bar"), functions);
+
+        context.setVariable("blah", "foo");
+        Object result = s.execute(context);
+        assertEquals("i am foo", result);
+
+        context.setVariable("blah", "baz2");
+        result = s.execute(context);
+        assertEquals("yes too", result);
+
+        context.setVariable("blah", "baz");
+        result = s.execute(context);
+        assertEquals("i am baz", result);
+
+        context.setVariable("blah", "xxx");
+        result = s.execute(context);
+        assertNull(result);
+    }
+
+
 
 
     @Test

@@ -9,13 +9,18 @@ public class SimpleScriptContext implements ScriptContext {
 
     private final Deque<Map<String, Object>> varStack = new LinkedList<>();
     private final Map<String, TwistFunction> functions = new HashMap<>();
+    private final Map<String, Object> baseVars = new LinkedHashMap<>();
+    {
+        baseVars.put("this", baseVars);
+    }
 
     public SimpleScriptContext() {
-        varStack.addFirst(new LinkedHashMap<>());
+        varStack.addFirst(baseVars);
     }
 
     public SimpleScriptContext(Map<String,Object> initial, Map<String, TwistFunction> functions) {
-        varStack.addFirst(new LinkedHashMap<>(initial));
+        baseVars.putAll(initial);
+        varStack.addFirst(baseVars);
         this.functions.putAll(functions);
     }
 
@@ -40,7 +45,7 @@ public class SimpleScriptContext implements ScriptContext {
     public boolean isDefined(String name) {
         for (Map<String, Object> symbols : varStack) {
             if (symbols == null) {
-                return false;
+                return baseVars.containsKey(name);
             }
             if (symbols.containsKey(name)) {
                 return true;
@@ -53,7 +58,7 @@ public class SimpleScriptContext implements ScriptContext {
     public Object getVariable(String name) {
         for (Map<String, Object> symbols : varStack) {
             if (symbols == null) {
-                break;
+                return baseVars.get(name);
             }
             if (symbols.containsKey(name)) {
                 return symbols.get(name);
@@ -73,6 +78,7 @@ public class SimpleScriptContext implements ScriptContext {
                 return;
             }
         }
+
         varStack.getFirst().put(name, value);
     }
 
@@ -99,5 +105,8 @@ public class SimpleScriptContext implements ScriptContext {
         functions.put(name, function);
     }
 
+    public List<String> getFunctionNames() {
+        return new ArrayList<>(functions.keySet());
+    }
 
 }

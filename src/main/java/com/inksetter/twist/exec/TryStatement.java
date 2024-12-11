@@ -38,7 +38,15 @@ public class TryStatement implements Statement {
                             // expression, return the result of executing that
                             // block.
                             if (block != null) {
-                                return block.execute(exec, true);
+                                String varName = catchBlock.getVarName();
+                                exec.pushStack(false);
+                                exec.setVariable(varName, e);
+                                try {
+                                    return block.execute(exec, true);
+                                }
+                                finally {
+                                    exec.popStack();
+                                }
                             }
                         }
                     }

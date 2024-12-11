@@ -6,7 +6,7 @@
 
   <groupId>com.inksetter</groupId>
   <artifactId>twist</artifactId>
-  <version>1.9</version>
+  <version>1.9.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>twist</name>
@@ -19,6 +19,17 @@
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
+
+      <distributionManagement>
+        <repository>
+            <id>nexus-deploy</id>
+            <url>https://nexus-dev.softeon.com/repository/maven-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus-deploy</id>
+            <url>https://nexus-dev.softeon.com/repository/maven-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
   <developers>
     <developer>
@@ -88,27 +99,23 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.sonatype.central</groupId>
-        <artifactId>central-publishing-maven-plugin</artifactId>
-        <version>0.5.0</version>
-        <extensions>true</extensions>
-        <configuration>
-          <publishingServerId>central</publishingServerId>
-        </configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>3.1.1</version>
+        <executions>
+            <execution>
+                <id>default-deploy</id>
+                <phase>deploy</phase>
+                <goals>
+                    <goal>deploy</goal>
+                </goals>
+            </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.5</version>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>3.0.1</version>
       </plugin>
     </plugins>
   </build>
