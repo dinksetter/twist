@@ -26,6 +26,6 @@ public class IfStatement implements Statement {
         }
 
         // If statements not executed have a null value
-        return null;
+        return StatementResult.valueResult(null);
     }
 }
