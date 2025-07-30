@@ -10,9 +10,6 @@ public class SimpleScriptContext implements ScriptContext {
     private final Deque<Map<String, Object>> varStack = new LinkedList<>();
     private final Map<String, TwistFunction> functions = new HashMap<>();
     private final Map<String, Object> baseVars = new LinkedHashMap<>();
-    {
-        baseVars.put("this", baseVars);
-    }
 
     public SimpleScriptContext() {
         varStack.addFirst(baseVars);
