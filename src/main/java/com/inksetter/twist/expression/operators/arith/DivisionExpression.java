@@ -4,6 +4,8 @@ import com.inksetter.twist.ValueUtils;
 import com.inksetter.twist.Expression;
 import com.inksetter.twist.expression.operators.AbsractOperExpression;
 
+import java.math.BigDecimal;
+
 public class DivisionExpression extends AbsractOperExpression {
     public DivisionExpression(Expression left, Expression right) {
         super(left, right);
@@ -11,6 +13,8 @@ public class DivisionExpression extends AbsractOperExpression {
     
     protected Object doOper(Object left, Object right)
             throws DivideByZeroException {
+        BigDecimal bd;
+        
         if (left instanceof Integer && right instanceof Integer) {
             int leftNum = ValueUtils.asInt(left);
             int rightNum = ValueUtils.asInt(right);

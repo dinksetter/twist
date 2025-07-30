@@ -158,20 +158,28 @@ public class TwistCoreTest {
     @Test
     public void testDateArithmetic() throws TwistException{
         ScriptContext context = new SimpleScriptContext();
-        engine.parseScript("a = now(); b = a - 4.4; c = b - a; d = b + 8").execute(context);
+        engine.parseScript("""
+                a = now();
+                b = a - 4.4;
+                c = a + 0.5;
+                diff = b - a;
+                diff2 = c - a;
+        """).execute(context);
         assertTrue(context.getVariable("a") instanceof Date);
         assertTrue(context.getVariable("b") instanceof Date);
-        assertTrue(context.getVariable("c") instanceof Double);
-        assertTrue(context.getVariable("d") instanceof Date);
+        assertTrue(context.getVariable("c") instanceof Date);
+        assertTrue(context.getVariable("diff") instanceof Double);
+        assertTrue(context.getVariable("diff2") instanceof Double);
         Date a = (Date) context.getVariable("a");
         Date b = (Date) context.getVariable("b");
-        Double c = (Double) context.getVariable("c");
-        Date d = (Date) context.getVariable("d");
+        Date c = (Date) context.getVariable("c");
+        Double diff1 = (Double) context.getVariable("diff");
+        Double diff2 = (Double) context.getVariable("diff2");
 
         assertTrue(a.compareTo(b) > 0);
-        assertTrue(a.compareTo(d) < 0);
-        assertTrue(b.compareTo(d) < 0);
-        assertEquals(4.4, c, 0.01);
+        assertTrue(a.compareTo(c) < 0);
+        assertEquals(-4.4, diff1, 0.01);
+        assertEquals(0.5, diff2, 0.01);
     }
 
     public static class TestClass {

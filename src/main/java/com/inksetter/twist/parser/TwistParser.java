@@ -14,6 +14,7 @@ import com.inksetter.twist.expression.operators.OrExpression;
 import com.inksetter.twist.expression.operators.arith.*;
 import com.inksetter.twist.expression.operators.compare.*;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -557,19 +558,12 @@ public class TwistParser {
                         numericValue.indexOf('e') != -1 ||
                         numericValue.indexOf('E') != -1) {
                     // We've got a floating point value on our hands.
-                    numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
+                    numericExpression = new DoubleLiteral(new BigDecimal(numericValue));
                 }
                 else {
                     // Deal with large numeric values.
                     BigInteger tmpValue = new BigInteger(numericValue, 10);
-                    
-                    if (tmpValue.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0 ||
-                        tmpValue.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
-                        numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
-                    }
-                    else {
-                        numericExpression = new IntegerLiteral(tmpValue.intValue());
-                    }
+                    numericExpression = new IntegerLiteral(tmpValue);
                 }
             }
             catch (NumberFormatException e) {
