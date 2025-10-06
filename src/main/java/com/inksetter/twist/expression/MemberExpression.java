@@ -34,20 +34,33 @@ public class MemberExpression implements Assignable {
 
         // option 2 - bean introspection
         Class<?> cls = obj.getClass();
-        String methodSuffix = Character.toUpperCase(_memberName.charAt(0)) + _memberName.substring(1);
-        Method getter;
-        try {
+        // record
+        if (obj instanceof Record) {
             try {
-                getter = cls.getMethod("get" + methodSuffix);
+                Method recordMember = cls.getMethod(_memberName);
+                return recordMember.invoke(obj);
+            } catch (NoSuchMethodException e) {
+                throw new TwistException("Unable to find properties of " + obj, e);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new TwistException("Unable to get properties of " + obj, e);
             }
-            catch (NoSuchMethodException e) {
-                getter = cls.getMethod("is" + methodSuffix);
+        }
+        else {
+
+            String methodSuffix = Character.toUpperCase(_memberName.charAt(0)) + _memberName.substring(1);
+            Method getter;
+            try {
+                try {
+                    getter = cls.getMethod("get" + methodSuffix);
+                } catch (NoSuchMethodException e) {
+                    getter = cls.getMethod("is" + methodSuffix);
+                }
+                return getter.invoke(obj);
+            } catch (NoSuchMethodException e) {
+                throw new TwistException("Unable to find properties of " + obj, e);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new TwistException("Unable to get properties of " + obj, e);
             }
-            return getter.invoke(obj);
-        } catch (NoSuchMethodException e) {
-            throw new TwistException("Unable to find properties of " + obj, e);
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new TwistException("Unable to get properties of " + obj, e);
         }
     }
 

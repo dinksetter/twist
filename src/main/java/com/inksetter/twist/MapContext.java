@@ -12,6 +12,10 @@ public class MapContext implements EvalContext {
         values = new LinkedHashMap<>();
     }
 
+    public MapContext(Map<String, Object> initial) {
+        values = new LinkedHashMap<>(initial);
+    }
+
     @Override
     public boolean isDefined(String name) {
         return values.containsKey(name);

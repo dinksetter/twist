@@ -402,7 +402,6 @@ public class TwistCoreTest {
         Assert.assertFalse(ValueUtils.asBoolean(expr.evaluate(context)));
     }
 
-
     @Test
     public void testNumericExpression() throws TwistException {
         ScriptContext context = new SimpleScriptContext(Map.of("foo", new ExprTestObject()), functions);
@@ -410,6 +409,15 @@ public class TwistCoreTest {
         Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.y < 19").parseExpression().evaluate(context)));
     }
 
+    public record TestRecord(String a, String b, int c) {};
+
+    @Test
+    public void testRecordExpression() throws TwistException {
+
+        EvalContext context = new MapContext(Map.of("blah", new TestRecord("aaa", "bbb", -2)));
+        Object result = new TwistParser("blah.a != blah.b").parseExpression().evaluate(context);
+        assertTrue(ValueUtils.asBoolean(result));
+    }
 
     @Test
     public void testInternalMethods() throws TwistException {
@@ -559,9 +567,6 @@ public class TwistCoreTest {
         result = s.execute(context);
         assertNull(result);
     }
-
-
-
 
     @Test
     public void testChainedAssignment() throws TwistException {
@@ -783,5 +788,24 @@ public class TwistCoreTest {
         TwistEngine t = new TwistEngine();
         Object result = t.parseScript("xxx.myMethod(100, 'ABC')").execute(context);
         assertEquals("calling myMethod([100, ABC])", result);
+    }
+
+    @Test
+    public void testPredicateExpression() throws TwistException {
+        MapContext ctx = new MapContext(Map.of("a", "123", "b", "hello", "c", 900));
+        TwistEngine engine = new TwistEngine();
+        assertTrue(engine.parseExpression("a == '123'").evaluate(ctx, Boolean.class));
+        assertTrue(engine.parseExpression("b == 'hello'").evaluate(ctx, Boolean.class));
+        assertTrue(engine.parseExpression("b =~ '^h'").evaluate(ctx, Boolean.class));
+        assertFalse(engine.parseExpression("b =~ '^o'").evaluate(ctx, Boolean.class));
+        assertTrue(engine.parseExpression("int (a) < 200 && b =~ 'll' && c > 850").evaluate(ctx, Boolean.class));
+    }
+
+    @Test
+    public void testComplexPredicateExpression() throws TwistException {
+        MapContext ctx = new MapContext(Map.of("a", "123", "b", "hello", "c", Map.of("xxx", "world", "yyy", 14)));
+        TwistEngine engine = new TwistEngine();
+        assertTrue(engine.parseExpression("int (a) >= 100 && (c.xxx == \"world\" || c.yyy > 14)").evaluate(ctx, Boolean.class));
+        assertFalse(engine.parseExpression("int (a) >= 200 && (c.xxx == \"world\" || c.yyy >= 14)").evaluate(ctx, Boolean.class));
     }
 }

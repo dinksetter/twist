@@ -7,6 +7,7 @@ import java.text.DecimalFormatSymbols;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -19,6 +20,33 @@ public class ValueUtils {
 
     public static TwistDataType getType(Object value) {
         return TwistDataType.forValue(value);
+    }
+
+    public static <T> T asType(Object value, Class<T> cls) throws TypeMismatchException {
+        if (value == null || isCompatible(value.getClass(), cls)) {
+            return (cls.cast(value));
+        }
+        else if (cls == Boolean.class || cls == Boolean.TYPE) {
+            return cls.cast(asBoolean(value));
+        }
+        else if (cls == String.class) {
+            return cls.cast(asString(value));
+        }
+        else if (cls == Integer.class || cls == Integer.TYPE) {
+            return cls.cast(asInt(value));
+        }
+        else if (cls == Double.class || cls == Double.TYPE) {
+            return cls.cast(asDouble(value));
+        }
+        else if (cls == Long.class || cls == Long.TYPE) {
+            return cls.cast(asLong(value));
+        }
+        else if (cls == Date.class) {
+            return cls.cast(asDate(value));
+        }
+        else {
+            throw new TypeMismatchException("cannot evaluate " + value + "as " + cls.getName());
+        }
     }
     
     public static boolean asBoolean(Object value) {
@@ -39,7 +67,15 @@ public class ValueUtils {
         }
 
         if (value instanceof String) {
-            return ((String)value).isEmpty();
+            return !((String)value).isEmpty();
+        }
+
+        if (value instanceof List<?> list) {
+            return !list.isEmpty();
+        }
+
+        if (value instanceof Map<?,?> map) {
+            return !map.isEmpty();
         }
         
         // Otherwise, non-null equals true;
@@ -117,7 +153,7 @@ public class ValueUtils {
         return 0.0;
     }
     
-    public static Date asDate(Object value) throws TwistException {
+    public static Date asDate(Object value) throws TypeMismatchException {
         if (isNull(value))  return null;
         
         if (value instanceof Date) {
