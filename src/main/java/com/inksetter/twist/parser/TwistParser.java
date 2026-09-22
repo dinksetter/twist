@@ -200,9 +200,7 @@ public class TwistParser {
             }
             StatementBlock functionBlock = buildSubSequence();
 
-            UserDefFunction newFunc = new UserDefFunction(functionName, argNames, functionBlock);
-
-            stmt = new DefFunctionStatement(functionName, newFunc);
+            stmt = new DefFunctionStatement(functionName, argNames, functionBlock);
         }
         else if (scan.tokenType() == TwistTokenType.OPEN_BRACE) {
             stmt = new BlockStatement(buildSubSequence());

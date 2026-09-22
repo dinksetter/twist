@@ -323,6 +323,10 @@ for (x : items) {
 
 A `for-each` loop variable belongs to the loop. A C-style loop variable like `i` stays set after the loop.
 
+Each scope is a frame that refers to the one enclosing it. A `ScriptContext` *is* one of those frames: `push()`
+returns a nested frame for a block, and `pushCall()` returns one for a function body, where assignment stops
+rather than reaching the enclosing scope. Nothing needs to be popped.
+
 ### Functions
 
 Use `def` to define a named function. It returns the value of its last statement, or of a `return`.
@@ -336,9 +340,9 @@ def fact(n) {
 fact(10)   // 3628800
 ```
 
-Inside a function you can see its arguments, the variables it creates, and top-level script variables. You can't
-see the caller's local variables. Assigning to a variable inside a function creates a local variable, even if a
-top-level variable has the same name:
+A function sees its arguments, the variables it creates, and the scope it was **defined** in — not the scope it
+was called from, so it can't see the caller's local variables. Assigning to a variable inside a `def` function
+creates a local variable, even if an enclosing scope has the same name:
 
 ```
 x = 1
@@ -370,10 +374,42 @@ handlers[0](1)                        // 2
 A call can be applied to anything that evaluates to a function, anywhere in an expression: `fs[0](1) + 2`,
 `m['f'](3)` and `add(1)(2)` all work.
 
-Lambdas follow the same scope rules as `def` functions. They do **not** capture variables from the scope where
-they were created, so a lambda that a function returns can't see that function's arguments. Also, `obj.f(x)` calls
-a *Java method* named `f`. It does not call a lambda stored in a map; fetch it first (`g = obj.f; g(x)`) or index
-it (`obj['f'](x)`).
+#### Lambdas are closures
+
+A lambda captures the scope it was created in and keeps it, even when it's called somewhere else entirely. Unlike
+a `def` function, it *shares* that scope rather than getting a private copy, so assigning to a captured name
+updates the original:
+
+```
+count = 0
+bump = -> { count += 1 }
+bump(); bump()
+count                                 // 2
+
+def mk(n) { return -> (x) { x + n } }
+add5 = mk(5)
+add5(1)                               // 6, and it still works after mk() has returned
+```
+
+Arguments and brand-new variables still belong to the lambda, so they never overwrite a captured name:
+
+```
+x = 1
+f = -> (x) { x * 10 }
+[f(2), x]                             // [20, 1] — the parameter shadows the captured x
+```
+
+A loop has one scope for the whole loop rather than one per pass, so lambdas created inside a loop all capture
+the same variable and see its final value:
+
+```
+fs = []
+for (i : [1, 2, 3]) { fs.add(-> { i }) }
+[fs[0](), fs[1](), fs[2]()]           // [3, 3, 3]
+```
+
+Also, `obj.f(x)` calls a *Java method* named `f`. It does not call a lambda stored in a map; fetch it first
+(`g = obj.f; g(x)`) or index it (`obj['f'](x)`).
 
 ### Error handling
 

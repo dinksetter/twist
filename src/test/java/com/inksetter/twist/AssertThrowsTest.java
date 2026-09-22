@@ -6,7 +6,6 @@ import com.inksetter.twist.expression.function.FunctionArgumentException;
 import org.junit.Test;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
 
@@ -110,19 +109,16 @@ public class AssertThrowsTest {
 
     @Test
     public void testBlockRunsExactlyOnce() throws TwistException {
-        // Counted from Java: a lambda body runs in a fresh scope, so it can't update a script
-        // variable of the caller's.
-        AtomicInteger calls = new AtomicInteger();
-        ScriptContext ctx = new SimpleScriptContext(Map.of(),
-                Map.of("track", (args, c) -> calls.incrementAndGet()));
-        ctx.addFunction("assertThrows", new AssertThrowsFunction());
-
-        Twist.parseScript("assertThrows(NumberFormatException, -> { track(); int('x') })").execute(ctx);
-        assertEquals(1, calls.get());
-
-        calls.set(0);
-        Twist.parseScript("assertThrows(NumberFormatException, int(string(track()) + 'x'))").execute(ctx);
-        assertEquals(1, calls.get());
+        assertEquals(1, exec("""
+                calls = 0
+                assertThrows(NumberFormatException, -> { calls += 1; int('x') })
+                calls
+                """));
+        assertEquals(1, exec("""
+                calls = 0
+                assertThrows(NumberFormatException, int(string(calls += 1) + 'x'))
+                calls
+                """));
     }
 
     @Test
