@@ -675,6 +675,7 @@ public class TwistCoreTest {
         Object result = t.parseScript(script).execute(context);
         assertEquals("BOOM", result);
     }
+
     @Test
     public void testTryCatchWithSuperclass() throws TwistException {
         ScriptContext context = new SimpleScriptContext();
@@ -807,5 +808,57 @@ public class TwistCoreTest {
         TwistEngine engine = new TwistEngine();
         assertTrue(engine.parseExpression("int (a) >= 100 && (c.xxx == \"world\" || c.yyy > 14)").evaluate(ctx, Boolean.class));
         assertFalse(engine.parseExpression("int (a) >= 200 && (c.xxx == \"world\" || c.yyy >= 14)").evaluate(ctx, Boolean.class));
+    }
+
+    @Test
+    public void testLambdaExpression() throws TwistException {
+        ScriptContext context = new SimpleScriptContext();
+
+        context.setVariable("aaa", "hello");
+        context.setVariable("bbb", "jello");
+        context.setVariable("ccc", 76);
+        Object result = engine.parseScript("""
+            www = -> (a, b, c) {
+                a + ' ' + b + ' ' + c;
+            }
+            
+            yyy = -> (f, z) {
+                return f(z, z, z)
+            }
+            
+            www(aaa, bbb, ccc) + '/' + yyy(www, bbb)
+            """).execute(context);
+        Assert.assertEquals("hello jello 76/jello jello jello", result);
+
+        Object evalResult = engine.parseExpression("""
+                (-> (a, b) { a + b })(ccc, 200)
+                """).evaluate(context);
+
+        Assert.assertEquals(276, evalResult);
+    }
+
+    @Test
+    public void testNonCallableCall() throws TwistException {
+        ScriptContext context = new SimpleScriptContext();
+
+        context.setVariable("aaa", "hello");
+        context.setVariable("bbb", "jello");
+        context.setVariable("ccc", 76);
+        Script script = engine.parseScript("""
+            www = -> (a, b, c) {
+                a + ' ' + b + ' ' + c;
+            }
+            
+            yyy = www(bbb, bbb, bbb)
+            
+            www(aaa, bbb, ccc) + '/' + yyy(www, bbb)
+            """);
+        Assert.assertThrows(TwistException.class, () -> script.execute(context));
+
+        Expression expr = engine.parseExpression("""
+                "justAString"(200)
+                """);
+        Assert.assertThrows(TwistException.class, () -> expr.evaluate(context));
+
     }
 }

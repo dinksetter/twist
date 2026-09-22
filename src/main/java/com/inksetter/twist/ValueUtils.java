@@ -225,7 +225,7 @@ public class ValueUtils {
     );
 
     public static boolean isCompatible(Class<?> type, Class<?> valueClass) {
-        if (type.isAssignableFrom(valueClass)) {
+        if (valueClass.isAssignableFrom(type)) {
             return true;
         }
         return type.isPrimitive() && valueClass == primitiveMap.get(type);

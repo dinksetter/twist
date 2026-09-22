@@ -27,6 +27,13 @@ public class FunctionExpression implements Expression {
         TwistFunction func = BUILTINS.get(name.toLowerCase());
 
         if (func == null) {
+            Object obj = ctx.getVariable(name);
+            if (obj instanceof TwistFunction) {
+                func = (TwistFunction) obj;
+            }
+        }
+
+        if (func == null) {
             func = ctx.lookupFunction(name);
         }
 

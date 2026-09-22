@@ -22,8 +22,11 @@ public class TryStatement implements Statement {
         } catch (Exception e) {
             if (catchBlocks != null) {
                 // If we're set up to catch errors, do so.
-                Class<? extends Exception> caughtClass = e.getClass();
-                Class<?>[] allClasses = caughtClass.getClasses();
+                Class<? extends Throwable> caughtClass = e.getClass();
+                if (e instanceof TwistException && e.getCause() != null) {
+                    caughtClass = e.getCause().getClass();
+                }
+
                 for (CatchBlock catchBlock : catchBlocks) {
                     for (Class cls = caughtClass; cls != null; cls = cls.getSuperclass()) {
                         if (catchBlock.getTypeName().equals(cls.getSimpleName())) {

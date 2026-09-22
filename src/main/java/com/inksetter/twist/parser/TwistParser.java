@@ -30,10 +30,6 @@ public class TwistParser {
     protected final TwistLexer scan;
 
     public TwistParser(CharSequence script) {
-        this(script, null);
-    }
-
-    public TwistParser(CharSequence script, TwistEngine engine) {
         scan = new TwistLexer(script);
     }
 
@@ -407,6 +403,10 @@ public class TwistParser {
             Expression ternaryElse = buildFullExpression();
             expr = new TernaryExpression(ternaryIf, ternaryThen, ternaryElse);
         }
+        else if (scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+            List<Expression> callArgs = getFunctionArgs();
+            expr = new CallExpression(expr, callArgs);
+        }
 
         return expr;
     }
@@ -531,6 +531,21 @@ public class TwistParser {
             else {
                 return new ReferenceExpression(identifier);
             }
+        case ARROW:
+            scan.next();
+            // -> (a, b, c) {
+            // }
+            List<String> argNames = List.of();
+            if (scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+                argNames = getFunctionArgDef();
+            }
+            if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
+                throw parseException(TwistTokenType.OPEN_BRACE);
+            }
+            StatementBlock functionBlock = buildSubSequence();
+
+            return new LambdaExpression(argNames, functionBlock);
+
         case OPEN_PAREN:
             scan.next();
             Expression subExpression = buildFullExpression();
