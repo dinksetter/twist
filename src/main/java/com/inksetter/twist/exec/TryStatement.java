@@ -51,6 +51,9 @@ public class TryStatement implements Statement {
                                     exec.popStack();
                                 }
                             }
+
+                            // An empty catch block swallows the exception.
+                            return StatementResult.valueResult(null);
                         }
                     }
                 }

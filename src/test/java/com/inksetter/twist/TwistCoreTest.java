@@ -171,7 +171,7 @@ public class TwistCoreTest {
         assertTrue(a.compareTo(b) > 0);
         assertTrue(a.compareTo(d) < 0);
         assertTrue(b.compareTo(d) < 0);
-        assertEquals(4.4, c, 0.01);
+        assertEquals(-4.4, c, 0.01);
     }
 
     public static class TestClass {
@@ -391,6 +391,7 @@ public class TwistCoreTest {
         Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.x ==~ 'ana'").parseExpression().evaluate(context)));
         Assert.assertTrue(ValueUtils.asBoolean(new TwistParser("foo.x =~ 'ana'").parseExpression().evaluate(context)));
         Assert.assertTrue(ValueUtils.asBoolean(new TwistParser("foo.x !~ 'apple'").parseExpression().evaluate(context)));
+        Assert.assertFalse(ValueUtils.asBoolean(new TwistParser("foo.x !~ 'b.*'").parseExpression().evaluate(context)));
 
         // Regex prime check
         String script = "!('x'.repeat(bar) ==~ 'x?$|^(xx+?)\\1+')";

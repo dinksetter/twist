@@ -224,11 +224,15 @@ public class ValueUtils {
             short.class, Short.class
     );
 
-    public static boolean isCompatible(Class<?> type, Class<?> valueClass) {
-        if (valueClass.isAssignableFrom(type)) {
+    /**
+     * Determines whether a value of class <code>valueClass</code> can be used where <code>targetType</code>
+     * is expected, either directly or by unboxing to a primitive.
+     */
+    public static boolean isCompatible(Class<?> valueClass, Class<?> targetType) {
+        if (targetType.isAssignableFrom(valueClass)) {
             return true;
         }
-        return type.isPrimitive() && valueClass == primitiveMap.get(type);
+        return targetType.isPrimitive() && valueClass == primitiveMap.get(targetType);
     }
     
     //

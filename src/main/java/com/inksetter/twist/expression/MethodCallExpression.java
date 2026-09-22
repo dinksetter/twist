@@ -45,7 +45,7 @@ public class MethodCallExpression implements Expression {
                         Class<?>[] types = method.getParameterTypes();
                         boolean matching = true;
                         for (int i = 0; i < types.length && matching; i++) {
-                            if (argValues[i] != null && !ValueUtils.isCompatible(types[i], argValues[i].getClass())) {
+                            if (argValues[i] != null && !ValueUtils.isCompatible(argValues[i].getClass(), types[i])) {
                                 matching = false;
                             }
                         }
