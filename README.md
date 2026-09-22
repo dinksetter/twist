@@ -170,8 +170,8 @@ total += price * qty
 When the left side of `+` is a string, the right side is converted to a string. Otherwise both sides are treated as
 numbers, so `1 + 'a'` is an error. Put the string first, or use `string()`.
 
-The `-` sign in front of a number literal makes it negative (`-3`, `-2.5`). It does not work in front of other
-expressions, so write `0 - x` instead of `-x`.
+A `-` sign in front of a value negates it, whether it's a literal or an expression (`-3`, `-x`, `-items[0]`).
+Negating null gives null.
 
 #### Pattern matching
 
@@ -196,6 +196,7 @@ config = {
 
 config.db.ports[1]           // 5433
 config.db.host = 'db.local'  // set a map entry
+config['db']['host']         // the same entry, by key
 config.missing               // null
 
 list = ['a', 'b', 'c']
@@ -205,7 +206,9 @@ list[0] = 'z'                // set a list (or Java array) element
 A `{` at the very start of a statement opens a block, not a map. To start a statement with a map literal, assign
 it or `return` it.
 
-Use `.` to get and set values in maps. `[...]` indexes lists and arrays but does not look up map keys.
+Use `.` or `[...]` to get and set values in maps. `[...]` takes the key as it is written, so `m['a b']` works
+for keys that aren't identifiers, and `m[k]` looks up whatever `k` holds. Lists and Java arrays are indexed by
+position, starting at 0.
 
 A line that starts with `(` or `[` continues the expression on the line before it. For example,
 `x = a` followed by a line `(b + 1)` is parsed as the call `x = a(b + 1)`. End the earlier statement with `;` if
@@ -326,9 +329,13 @@ handlers[0](1)                        // 2
 (-> (a, b) { a + b })(1, 2)           // 3
 ```
 
+A call can be applied to anything that evaluates to a function, anywhere in an expression: `fs[0](1) + 2`,
+`m['f'](3)` and `add(1)(2)` all work.
+
 Lambdas follow the same scope rules as `def` functions. They do **not** capture variables from the scope where
 they were created, so a lambda that a function returns can't see that function's arguments. Also, `obj.f(x)` calls
-a *Java method* named `f`. It does not call a lambda stored in a map.
+a *Java method* named `f`. It does not call a lambda stored in a map; fetch it first (`g = obj.f; g(x)`) or index
+it (`obj['f'](x)`).
 
 ### Error handling
 
@@ -350,7 +357,8 @@ finally {
 ```
 
 A catch clause matches by the exception's simple class name, and it also matches superclasses, so
-`catch (Exception e)` catches everything. The variable (`e`) holds the Java exception object. If no clause
+`catch (Exception e)` catches everything. An exception thrown by a Java method is matched by its own type, such as
+`catch (StringIndexOutOfBoundsException e)`. The variable (`e`) holds the Java exception object. If no clause
 matches, the exception keeps propagating after the `finally` block runs. twist has no `throw` statement.
 
 ### Built-in functions
@@ -371,7 +379,7 @@ name as a built-in (such as `double` or `max`) can't be called.
 | `sprintf(fmt, args...)`          | Java `String.format`                                                  |
 | `min(a, b, ...)`, `max(a, b, ...)`| Smallest or largest argument                                         |
 | `type(x)`                        | Type name: `STRING`, `INTEGER`, `DOUBLE`, `BOOLEAN`, `DATETIME`, `ARRAY`, `OBJECT`, ... |
-| `json(x [, pretty])`             | Render a value as JSON text                                           |
+| `json(x [, pretty])`             | Render a value as JSON text, escaping strings                         |
 | `eval(s)`                        | Parse and evaluate a string as an expression (useful for parsing JSON text) |
 | `b64encode(bytes)`, `b64decode(s)`| Base64 encoding and decoding (`byte[]` <-> string)                   |
 
@@ -381,6 +389,7 @@ substr('World', -3)                      // "rld"
 indexof('World', 'r')                    // 3
 sprintf('%s has %d items', name, 3)
 json({a: 1, b: [2, 3]})                  // {"a":1,"b":[2,3]}
+json({ok: true, note: 'say "hi"'})       // {"ok":true,"note":"say \"hi\""}
 eval('{"a": [1, 2]}').a[1]               // 2
 ```
 
@@ -393,12 +402,16 @@ tomorrow = now() + 1
 sixHoursAgo = now() - 0.25
 ```
 
-Subtracting one date from another gives the difference in days, as a Double. The result is positive when the left
-date is later:
+Dates compare with the usual operators, and `string()` renders one in ISO-8601 form
+(`2024-01-01T00:00:00Z`). Subtracting one date from another gives the difference in days, as a Double. The
+result is positive when the left date is later:
 
 ```
 date('2024-01-03T00:00:00Z') - date('2024-01-01T00:00:00Z')   // 2.0
 date('2024-01-01T00:00:00Z') - date('2024-01-01T12:00:00Z')   // -0.5
+
+expiry < now()                                                // true once expiry has passed
+'expires ' + expiry                                           // "expires 2024-01-01T00:00:00Z"
 ```
 
 ## A Larger Example

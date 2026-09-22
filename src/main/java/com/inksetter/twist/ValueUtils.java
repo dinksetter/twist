@@ -175,7 +175,8 @@ public class ValueUtils {
     public static String formatDate(Date date) {
         if (date == null) return null;
 
-        return DateTimeFormatter.ISO_DATE_TIME.format(date.toInstant());
+        // ISO_DATE_TIME can't format a bare Instant, which has no date or time fields.
+        return DateTimeFormatter.ISO_INSTANT.format(date.toInstant());
     }
 
     public static Date parseDate(String dateString) {
@@ -198,7 +199,10 @@ public class ValueUtils {
         TwistDataType rightType = ValueUtils.getType(right);
 
 
-        if (leftType == TwistDataType.STRING || rightType == TwistDataType.STRING) {
+        if (leftType == TwistDataType.DATETIME && rightType == TwistDataType.DATETIME) {
+            return ((Date) left).compareTo((Date) right);
+        }
+        else if (leftType == TwistDataType.STRING || rightType == TwistDataType.STRING) {
             return asSafeString(left).compareTo(asSafeString(right));
         }
         else if (leftType == TwistDataType.DOUBLE || rightType == TwistDataType.DOUBLE) {

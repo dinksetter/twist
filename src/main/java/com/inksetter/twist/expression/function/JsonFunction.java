@@ -27,9 +27,9 @@ public class JsonFunction implements TwistFunction {
             out.append("null");
         }
         else if (value instanceof String) {
-            out.append('"').append(value).append('"');
+            appendQuoted(out, (String) value);
         }
-        else if (value instanceof Number) {
+        else if (value instanceof Number || value instanceof Boolean) {
             out.append(value);
         }
         else if (value instanceof List<?>) {
@@ -60,9 +60,8 @@ public class JsonFunction implements TwistFunction {
             for (Iterator<? extends Map.Entry<?, ?>> i = map.entrySet().iterator(); i.hasNext(); ) {
                 Map.Entry<?,?> entry = i.next();
                 if (pretty) out.append(prefix);
-                out.append("\"");
-                out.append(entry.getKey());
-                out.append("\":");
+                appendQuoted(out, ValueUtils.asString(entry.getKey()));
+                out.append(":");
                 out.append(render2(entry.getValue(), indent + 1, pretty));
                 if (i.hasNext()) {
                     out.append(',');
@@ -76,9 +75,32 @@ public class JsonFunction implements TwistFunction {
             out.append("}");
         }
         else {
-            out.append('"').append(ValueUtils.asString(value)).append('"');
+            appendQuoted(out, ValueUtils.asString(value));
         }
         return out;
     }
 
+    private void appendQuoted(StringBuilder out, String value) {
+        out.append('"');
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            switch (c) {
+                case '"': out.append("\\\""); break;
+                case '\\': out.append("\\\\"); break;
+                case '\n': out.append("\\n"); break;
+                case '\r': out.append("\\r"); break;
+                case '\t': out.append("\\t"); break;
+                case '\b': out.append("\\b"); break;
+                case '\f': out.append("\\f"); break;
+                default:
+                    if (c < 0x20) {
+                        out.append(String.format("\\u%04x", (int) c));
+                    }
+                    else {
+                        out.append(c);
+                    }
+            }
+        }
+        out.append('"');
+    }
 }

@@ -22,6 +22,10 @@ public class OperatorTest {
         return Twist.eval(expr, VARS);
     }
 
+    private static Object eval(String expr, Map<String, Object> vars) throws TwistException {
+        return Twist.eval(expr, vars);
+    }
+
     private static boolean test(String expr) throws TwistException {
         return Twist.eval(expr, VARS, Boolean.class);
     }
@@ -63,11 +67,19 @@ public class OperatorTest {
         assertEquals(3.0e9, eval("3000000000"));
     }
 
-    @Ignore("Known gap: unary minus is only supported in front of numeric literals")
     @Test
     public void testUnaryMinusOnExpression() throws TwistException {
         assertEquals(-7, eval("-n"));
         assertEquals(-7, eval("-(n)"));
+        assertEquals(7, eval("-(0 - n)"));
+        assertEquals(-21, eval("-n * 3"));
+        assertEquals(-4, eval("-n + 3"));
+        assertEquals(14, eval("n - -n"));
+        assertEquals(-1.5, eval("-x", Map.of("x", 1.5)));
+        assertEquals(-3, eval("-x", Map.of("x", "3")));
+        assertEquals(-1.5, eval("-x", Map.of("x", "1.5")));
+        assertEquals(-3, eval("-items[0]"));
+        assertNull(eval("-missing"));
     }
 
     @Test
@@ -99,10 +111,13 @@ public class OperatorTest {
         assertThrows(DivideByZeroException.class, () -> eval("1 % 0"));
     }
 
-    @Ignore("Known bug: ModExpression converts both sides to int")
     @Test
     public void testDoubleModulo() throws TwistException {
-        assertEquals(1.5, eval("7.5 % 2"));
+        assertEquals(1.5, (Double) eval("7.5 % 2"), 1e-9);
+        assertEquals(0.5, (Double) eval("7.5 % 3.5"), 1e-9);
+        assertEquals(-1.5, (Double) eval("-7.5 % 2"), 1e-9);
+        // Still integer arithmetic when neither side is a double
+        assertEquals(1, eval("7 % 2"));
     }
 
     @Test
@@ -254,16 +269,18 @@ public class OperatorTest {
         assertEquals(-3.5, (Double) exec("d = date('2024-03-01T00:00:00Z'); (d - 3.5) - d"), 1e-9);
     }
 
-    @Ignore("Known bug: ValueUtils.formatDate formats an Instant with ISO_DATE_TIME, which throws")
     @Test
     public void testDateComparison() throws TwistException {
         assertTrue(test("date('2024-01-01T00:00:00Z') < date('2024-01-02T00:00:00Z')"));
         assertTrue(test("now() + 1 > now()"));
     }
 
-    @Ignore("Known bug: a date on the right of + is treated as date arithmetic even when the left side is a string")
     @Test
     public void testStringPlusDate() throws TwistException {
-        assertTrue(eval("'at ' + now()") instanceof String);
+        assertEquals("at 2024-01-01T00:00:00Z", eval("'at ' + date('2024-01-01T00:00:00Z')"));
+        assertEquals("2024-01-01T00:00:00Z", eval("string(date('2024-01-01T00:00:00Z'))"));
+        // A date still absorbs a number on either side
+        assertEquals(Twist.eval("date('2024-01-02T00:00:00Z')", Map.of()),
+                eval("1 + date('2024-01-01T00:00:00Z')"));
     }
 }

@@ -14,6 +14,8 @@ import com.inksetter.twist.expression.StringLiteral;
 import com.inksetter.twist.expression.function.TwistFunction;
 import org.junit.Test;
 
+import com.inksetter.twist.MapContext;
+
 import java.util.List;
 import java.util.Map;
 
@@ -194,8 +196,10 @@ public class TwistParserTest {
     }
 
     @Test
-    public void testSignRequiresNumber() {
-        assertThrows(UnexpectedTokenException.class, () -> new TwistParser("-x").parseExpression());
+    public void testUnaryMinus() throws com.inksetter.twist.TwistException {
+        assertEquals(-5, new TwistParser("-x").parseExpression().evaluate(new MapContext(Map.of("x", 5))));
+        assertEquals(-5, new TwistParser("-(x)").parseExpression().evaluate(new MapContext(Map.of("x", 5))));
+        // A plus sign is only allowed in front of a number
         assertThrows(UnexpectedTokenException.class, () -> new TwistParser("+'a'").parseExpression());
     }
 

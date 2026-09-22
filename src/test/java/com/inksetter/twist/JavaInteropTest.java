@@ -150,16 +150,37 @@ public class JavaInteropTest {
         assertThrows(IndexOutOfBoundsException.class, () -> exec("[1, 2][5]", Map.of()));
     }
 
-    @Ignore("Known gap: [...] does not look up map keys")
     @Test
     public void testMapIndexing() throws TwistException {
         assertEquals(1, exec("m = {'a b': 1}; m['a b']", Map.of()));
+        assertEquals(1, exec("m = {a: 1}; m['a']", Map.of()));
         assertEquals(2, exec("m = {}; m['y'] = 2; m.y", Map.of()));
+        assertEquals(1, exec("m = {a: 1}; k = 'a'; m[k]", Map.of()));
+        assertNull(exec("m = {a: 1}; m['nope']", Map.of()));
+        // Keys are looked up as they are, without conversion
+        assertNull(exec("m = {'1': 'x'}; m[1]", Map.of()));
+    }
+
+    @Test
+    public void testMapIndexingWritesThroughToJava() throws TwistException {
+        Map<String, Object> m = new HashMap<>();
+        exec("m['a'] = 1", Map.of("m", m));
+        assertEquals(Map.of("a", 1), m);
     }
 
     @Test
     public void testIndexingNonList() {
-        assertThrows(TypeMismatchException.class, () -> exec("m = {a: 1}; m['a']", Map.of()));
+        assertThrows(TypeMismatchException.class, () -> exec("x = 5; x[0]", Map.of()));
+        assertThrows(TypeMismatchException.class, () -> exec("x = 'abc'; x[0]", Map.of()));
+        assertThrows(TypeMismatchException.class, () -> exec("x = 5; x[0] = 1", Map.of()));
+    }
+
+    @Test
+    public void testPrimitiveArrayElements() throws TwistException {
+        int[] nums = {1, 2, 3};
+        assertEquals(2, exec("nums[1]", Map.of("nums", nums)));
+        exec("nums[0] = 9", Map.of("nums", nums));
+        assertEquals(9, nums[0]);
     }
 
     @Test

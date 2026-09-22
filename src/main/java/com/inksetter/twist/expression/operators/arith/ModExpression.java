@@ -11,6 +11,17 @@ public class ModExpression extends AbsractOperExpression {
     
     protected Object doOper(Object left, Object right)
             throws DivideByZeroException {
+        if (left instanceof Double || right instanceof Double) {
+            double leftNum = ValueUtils.asDouble(left);
+            double rightNum = ValueUtils.asDouble(right);
+
+            if (rightNum == 0.0) {
+                throw new DivideByZeroException();
+            }
+
+            return leftNum % rightNum;
+        }
+
         int leftNum = ValueUtils.asInt(left);
         int rightNum = ValueUtils.asInt(right);
 

@@ -18,6 +18,10 @@ public class BuiltinFunctionTest {
         return Twist.eval(expr, VARS);
     }
 
+    private static Object eval(String expr, Map<String, Object> vars) throws TwistException {
+        return Twist.eval(expr, vars);
+    }
+
     @Test
     public void testFunctionNamesAreCaseInsensitive() throws TwistException {
         assertEquals("WORLD", eval("UPPER(name)"));
@@ -167,12 +171,17 @@ public class BuiltinFunctionTest {
         assertThrows(FunctionArgumentException.class, () -> eval("json()"));
     }
 
-    @Ignore("Known bug: JsonFunction does not escape strings and renders booleans as strings")
     @Test
     public void testJsonEscapingAndBooleans() throws TwistException {
         assertEquals("[true,false]", eval("json([true, false])"));
         assertEquals("\"say \\\"hi\\\"\"", eval("json('say \"hi\"')"));
         assertEquals("\"a\\nb\"", eval("json('a\nb')"));
+        assertEquals("\"a\\\\b\"", eval("json('a\\b')"));
+        assertEquals("\"a\\tb\"", eval("json('a\tb')"));
+        assertEquals("\"\\u0000\"", eval("json(s)", Map.of("s", "\u0000")));
+        // Keys are escaped too
+        assertEquals("{\"a\\\"b\":1}", eval("json(m)", Map.of("m", Map.of("a\"b", 1))));
+        assertEquals("{\"d\":\"2024-01-01T00:00:00Z\"}", eval("json({d: date('2024-01-01T00:00:00Z')})"));
     }
 
     @Test

@@ -103,10 +103,10 @@ public class TwistTest {
         assertThrows(ScriptSyntaxException.class, () -> Twist.eval("(1", Map.of()));
     }
 
-    @Ignore("Known bug: parseExpression() does not check for END, so trailing tokens are silently ignored")
     @Test
     public void testExpressionWithTrailingTokens() {
         assertThrows(ScriptSyntaxException.class, () -> Twist.parseExpression("1 2"));
         assertThrows(ScriptSyntaxException.class, () -> Twist.parseExpression("a = 1; b"));
+        assertThrows(ScriptSyntaxException.class, () -> Twist.parseExpression("(1 + 2) 3"));
     }
 }

@@ -198,11 +198,15 @@ public class FunctionTest {
         assertEquals(6, exec("def mk(n) { return -> (x) { x + n } }; add5 = mk(5); add5(1)"));
     }
 
-    @Ignore("Known limitation: a call on a non-identifier expression only parses at the top of an expression")
     @Test
     public void testCallInsideLargerExpression() throws TwistException {
         assertEquals(2, exec("f = -> (x) { x }; (f)(1) + 1"));
         assertEquals(3, exec("fs = [-> (x) { x }]; fs[0](1) + 2"));
+        assertEquals(12, exec("f = -> (x) { x }; f(2) * f(6)"));
+        assertEquals("yes", exec("f = -> (x) { x }; f(1) == 1 ? 'yes' : 'no'"));
+        assertEquals(6, exec("m = {f: -> (x) { x * 2 }}; m['f'](3)"));
+        // A call chain: add(1) returns a function that is then called
+        assertEquals(2, exec("add = -> (a) { -> (b) { b } }; add(1)(2) "));
     }
 
     @Ignore("Known limitation: a lambda called from a MapContext runs in a new, empty context")

@@ -269,10 +269,20 @@ public class ControlFlowTest {
         assertEquals("caught", result);
     }
 
-    @Ignore("Known bug: MethodCallExpression wraps InvocationTargetException, so only that is unwrapped")
     @Test
     public void testCatchExceptionFromJavaMethod() throws TwistException {
         assertEquals("caught", exec("try { 'abc'.substring(10) } catch (StringIndexOutOfBoundsException e) { 'caught' }"));
+        // Superclasses of the cause match too
+        assertEquals("caught", exec("try { 'abc'.substring(10) } catch (IndexOutOfBoundsException e) { 'caught' }"));
+        assertEquals("caught", exec("try { 'abc'.substring(10) } catch (Exception e) { 'caught' }"));
+        // So does the TwistException wrapper itself
+        assertEquals("caught", exec("try { 'abc'.substring(10) } catch (TwistException e) { 'caught' }"));
+        // The catch variable holds the exception the method threw
+        assertEquals("StringIndexOutOfBoundsException",
+                exec("try { 'abc'.substring(10) } catch (Exception e) { e.getClass().getSimpleName() }"));
+        // An unrelated type still propagates
+        assertThrows(TwistException.class,
+                () -> exec("try { 'abc'.substring(10) } catch (NumberFormatException e) { 'caught' }"));
     }
 
     @Test

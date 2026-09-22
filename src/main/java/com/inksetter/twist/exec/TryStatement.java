@@ -2,6 +2,7 @@ package com.inksetter.twist.exec;
 
 import com.inksetter.twist.TwistException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TryStatement implements Statement {
@@ -22,39 +23,42 @@ public class TryStatement implements Statement {
         } catch (Exception e) {
             if (catchBlocks != null) {
                 // If we're set up to catch errors, do so.
-                Class<? extends Throwable> caughtClass = e.getClass();
-                if (e instanceof TwistException && e.getCause() != null) {
-                    caughtClass = e.getCause().getClass();
+                // Exceptions thrown by Java code are wrapped in a TwistException. A catch block can
+                // name either the wrapper or the exception that caused it.
+                List<Throwable> candidates = new ArrayList<>();
+                for (Throwable t = e; t != null; t = t.getCause()) {
+                    candidates.add(t);
+                    if (!(t instanceof TwistException)) {
+                        break;
+                    }
                 }
 
                 for (CatchBlock catchBlock : catchBlocks) {
-                    for (Class cls = caughtClass; cls != null; cls = cls.getSuperclass()) {
-                        if (catchBlock.getTypeName().equals(cls.getSimpleName())) {
+                    Throwable matched = match(catchBlock, candidates);
+                    if (matched != null) {
+                        // We execute the catch block, if it exists. If it's a
+                        // simple catch expression, then
+                        // we return the error results of the exception that got
+                        // thrown.
+                        StatementBlock block = catchBlock.getBlock();
 
-                            // We execute the catch block, if it exists. If it's a
-                            // simple catch expression, then
-                            // we return the error results of the exception that got
-                            // thrown.
-                            StatementBlock block = catchBlock.getBlock();
-
-                            // If there's a block of code to execute on this catch
-                            // expression, return the result of executing that
-                            // block.
-                            if (block != null) {
-                                String varName = catchBlock.getVarName();
-                                exec.pushStack(false);
-                                exec.setVariable(varName, e);
-                                try {
-                                    return block.execute(exec, true);
-                                }
-                                finally {
-                                    exec.popStack();
-                                }
+                        // If there's a block of code to execute on this catch
+                        // expression, return the result of executing that
+                        // block.
+                        if (block != null) {
+                            String varName = catchBlock.getVarName();
+                            exec.pushStack(false);
+                            exec.setVariable(varName, matched);
+                            try {
+                                return block.execute(exec, true);
                             }
-
-                            // An empty catch block swallows the exception.
-                            return StatementResult.valueResult(null);
+                            finally {
+                                exec.popStack();
+                            }
                         }
+
+                        // An empty catch block swallows the exception.
+                        return StatementResult.valueResult(null);
                     }
                 }
             }
@@ -67,5 +71,23 @@ public class TryStatement implements Statement {
                 finallyBlock.execute(exec, true);
             }
         }
+    }
+
+    /**
+     * Returns the first of the candidate exceptions whose type, or one of its supertypes, is named
+     * by the given catch block, or null if the catch block doesn't apply.
+     */
+    private Throwable match(CatchBlock catchBlock, List<Throwable> candidates) {
+        // Deepest cause first, so that a general catch block like catch (Exception e) binds the
+        // exception that was originally thrown rather than the TwistException wrapping it.
+        for (int i = candidates.size() - 1; i >= 0; i--) {
+            Throwable caught = candidates.get(i);
+            for (Class<?> cls = caught.getClass(); cls != null; cls = cls.getSuperclass()) {
+                if (catchBlock.getTypeName().equals(cls.getSimpleName())) {
+                    return caught;
+                }
+            }
+        }
+        return null;
     }
 }
