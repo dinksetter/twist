@@ -26,18 +26,13 @@ public class StatementBlock implements Script, Serializable {
     }
     
     public StatementResult execute(ScriptContext exec, boolean newStack) throws TwistException {
-        if (newStack) exec.pushStack(false);
+        ScriptContext frame = newStack ? exec.push() : exec;
         StatementResult lastValue = null;
-        try {
-            for (Statement statement : statements) {
-                lastValue = statement.execute(exec);
-                if (lastValue != null && lastValue.getType() == StatementResult.Type.RETURN) {
-                    return lastValue;
-                }
+        for (Statement statement : statements) {
+            lastValue = statement.execute(frame);
+            if (lastValue != null && lastValue.getType() == StatementResult.Type.RETURN) {
+                return lastValue;
             }
-        }
-        finally {
-            if (newStack) exec.popStack();
         }
 
         return lastValue == null ? StatementResult.valueResult(null) : lastValue;

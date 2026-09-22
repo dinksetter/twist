@@ -17,25 +17,20 @@ public class ForListStatement implements Statement {
     }
 
     public StatementResult execute(ScriptContext exec) throws TwistException {
-        exec.pushStack(false);
-        try {
-            Object list = listExpr.evaluate(exec);
+        ScriptContext loop = exec.push();
+        Object list = listExpr.evaluate(loop);
 
-            if (list instanceof Iterable<?>) {
-                for (Object value : ((Iterable<?>) list)) {
-                    variable.assignValue(exec, value);
-                    StatementResult result = body.execute(exec);
-                    if (result.getType() == StatementResult.Type.RETURN) {
-                        return result;
-                    }
+        if (list instanceof Iterable<?>) {
+            for (Object value : ((Iterable<?>) list)) {
+                variable.assignValue(loop, value);
+                StatementResult result = body.execute(loop);
+                if (result.getType() == StatementResult.Type.RETURN) {
+                    return result;
                 }
             }
-            else {
-                throw new TypeMismatchException("not iterable");
-            }
         }
-        finally {
-            exec.popStack();
+        else {
+            throw new TypeMismatchException("not iterable");
         }
 
         return StatementResult.valueResult(null);

@@ -45,7 +45,7 @@ public class MethodCallExpression implements Expression {
                         Class<?>[] types = method.getParameterTypes();
                         boolean matching = true;
                         for (int i = 0; i < types.length && matching; i++) {
-                            if (argValues[i] != null && !ValueUtils.isCompatible(types[i], argValues[i].getClass())) {
+                            if (argValues[i] != null && !ValueUtils.isCompatible(argValues[i].getClass(), types[i])) {
                                 matching = false;
                             }
                         }
@@ -62,9 +62,14 @@ public class MethodCallExpression implements Expression {
 
             throw new UnrecognizedMethodException(methodName);
         } catch (IntrospectionException e) {
-            throw new TwistException("Unable to find properties of " + obj, e);
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new TwistException("Unable to get properties of " + obj, e);
+            throw new TwistException("Unable to find methods of " + obj, e);
+        } catch (InvocationTargetException e) {
+            // Keep the exception the method actually threw as the cause, so that catch blocks
+            // can match on its type.
+            Throwable cause = e.getCause() == null ? e : e.getCause();
+            throw new TwistException(methodName + "() threw " + cause, cause);
+        } catch (IllegalAccessException e) {
+            throw new TwistException("Unable to call method " + methodName + " on " + obj, e);
         }
     }
 

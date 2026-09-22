@@ -2,7 +2,7 @@ package com.inksetter.twist.expression.operators.compare;
 
 import com.inksetter.twist.Expression;
 
-public class RegexNoMatchExpression extends LikeExpression {
+public class RegexNoMatchExpression extends RegexMatchExpression {
     public RegexNoMatchExpression(Expression left, Expression right) {
         super(left, right);
     }
@@ -13,6 +13,6 @@ public class RegexNoMatchExpression extends LikeExpression {
     
     @Override
     protected String operString() {
-        return " =~ ";
+        return " !~ ";
     }
 }

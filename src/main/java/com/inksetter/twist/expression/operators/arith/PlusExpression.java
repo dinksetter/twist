@@ -16,14 +16,14 @@ public class PlusExpression extends AbsractOperExpression {
     }
     
     protected Object doOper(Object left, Object right) {
-        if (ValueUtils.getType(left) == TwistDataType.DATETIME) {
+        if (left instanceof String) {
+            return left + ValueUtils.asString(right);
+        }
+        else if (ValueUtils.getType(left) == TwistDataType.DATETIME) {
             return addToDate((Date)left, right);
         }
         else if (ValueUtils.getType(right) == TwistDataType.DATETIME) {
             return (addToDate((Date)right, left));
-        }
-        else if (left instanceof String) {
-            return left + ValueUtils.asString(right);
         }
         else if (left instanceof Double || right instanceof Double) {
             return ValueUtils.asDouble(left) + ValueUtils.asDouble(right);

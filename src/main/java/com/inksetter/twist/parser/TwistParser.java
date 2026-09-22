@@ -30,10 +30,6 @@ public class TwistParser {
     protected final TwistLexer scan;
 
     public TwistParser(CharSequence script) {
-        this(script, null);
-    }
-
-    public TwistParser(CharSequence script, TwistEngine engine) {
         scan = new TwistLexer(script);
     }
 
@@ -51,7 +47,13 @@ public class TwistParser {
 
     public Expression parseExpression() throws ScriptSyntaxException {
         scan.next();
-        return buildFullExpression();
+        Expression expr = buildFullExpression();
+
+        if (scan.tokenType() != TwistTokenType.END) {
+            throw parseException(TwistTokenType.END);
+        }
+
+        return expr;
     }
     
     //
@@ -198,9 +200,7 @@ public class TwistParser {
             }
             StatementBlock functionBlock = buildSubSequence();
 
-            UserDefFunction newFunc = new UserDefFunction(functionName, argNames, functionBlock);
-
-            stmt = new DefFunctionStatement(functionName, newFunc);
+            stmt = new DefFunctionStatement(functionName, argNames, functionBlock);
         }
         else if (scan.tokenType() == TwistTokenType.OPEN_BRACE) {
             stmt = new BlockStatement(buildSubSequence());
@@ -452,8 +452,13 @@ public class TwistParser {
     
     protected Expression buildExpressionValue() throws ScriptSyntaxException {
         Expression expr = buildExpressionPossibleValue();
-        while (scan.tokenType() == TwistTokenType.DOT || scan.tokenType() == TwistTokenType.OPEN_BRACKET) {
-            if (scan.tokenType() == TwistTokenType.DOT) {
+        while (scan.tokenType() == TwistTokenType.DOT || scan.tokenType() == TwistTokenType.OPEN_BRACKET
+                || scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+            if (scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+                // Calling the result of an expression, as in f(1)(2) or handlers[0](x)
+                expr = new CallExpression(expr, getFunctionArgs());
+            }
+            else if (scan.tokenType() == TwistTokenType.DOT) {
                 scan.next();
                 if (scan.tokenType() != TwistTokenType.IDENTIFIER) {
                     throw parseException(TwistTokenType.IDENTIFIER);
@@ -517,7 +522,6 @@ public class TwistParser {
     }
 
     protected Expression buildExpressionPossibleValue() throws ScriptSyntaxException {
-        boolean isNegative = false;
         switch (scan.tokenType()) {
         case BANG:
             scan.next();
@@ -531,6 +535,21 @@ public class TwistParser {
             else {
                 return new ReferenceExpression(identifier);
             }
+        case ARROW:
+            scan.next();
+            // -> (a, b, c) {
+            // }
+            List<String> argNames = List.of();
+            if (scan.tokenType() == TwistTokenType.OPEN_PAREN) {
+                argNames = getFunctionArgDef();
+            }
+            if (scan.tokenType() != TwistTokenType.OPEN_BRACE) {
+                throw parseException(TwistTokenType.OPEN_BRACE);
+            }
+            StatementBlock functionBlock = buildSubSequence();
+
+            return new LambdaExpression(argNames, functionBlock);
+
         case OPEN_PAREN:
             scan.next();
             Expression subExpression = buildFullExpression();
@@ -540,45 +559,21 @@ public class TwistParser {
             scan.next();
             return subExpression;
         case MINUS:
-            isNegative = true;
-            // Pass through
+            scan.next();
+            // A minus sign in front of a literal is part of the number, so that values like
+            // Integer.MIN_VALUE still fit in an int. Anything else is negated at runtime.
+            if (scan.tokenType() == TwistTokenType.NUMBER) {
+                return buildNumericLiteral(true);
+            }
+            return new NegateExpression(buildExpressionValue());
         case PLUS:
             scan.next();
             if (scan.tokenType() != TwistTokenType.NUMBER) {
                 throw parseException(TwistTokenType.NUMBER);
             }
-            // Pass through
+            return buildNumericLiteral(false);
         case NUMBER:
-            String numericValue = scan.current().getValue();
-            if (isNegative) numericValue = "-" + numericValue;
-            Expression numericExpression;
-            try {
-                if (numericValue.indexOf('.') != -1 ||
-                        numericValue.indexOf('e') != -1 ||
-                        numericValue.indexOf('E') != -1) {
-                    // We've got a floating point value on our hands.
-                    numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
-                }
-                else {
-                    // Deal with large numeric values.
-                    BigInteger tmpValue = new BigInteger(numericValue, 10);
-                    
-                    if (tmpValue.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0 ||
-                        tmpValue.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
-                        numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
-                    }
-                    else {
-                        numericExpression = new IntegerLiteral(tmpValue.intValue());
-                    }
-                }
-            }
-            catch (NumberFormatException e) {
-                throw parseException(TwistTokenType.NUMBER);
-            }
-            
-            scan.next();
-            
-            return numericExpression;
+            return buildNumericLiteral(false);
 
         case SINGLE_STRING:
         case DOUBLE_STRING:
@@ -614,6 +609,39 @@ public class TwistParser {
                 TwistTokenType.SINGLE_STRING, TwistTokenType.DOUBLE_STRING, TwistTokenType.MULTI_STRING,
                 TwistTokenType.NULL_TOKEN, TwistTokenType.TRUE, TwistTokenType.FALSE, TwistTokenType.OPEN_BRACE,
                 TwistTokenType.OPEN_BRACKET);
+    }
+
+    protected Expression buildNumericLiteral(boolean isNegative) throws ScriptSyntaxException {
+        String numericValue = scan.current().getValue();
+        if (isNegative) numericValue = "-" + numericValue;
+        Expression numericExpression;
+        try {
+            if (numericValue.indexOf('.') != -1 ||
+                    numericValue.indexOf('e') != -1 ||
+                    numericValue.indexOf('E') != -1) {
+                // We've got a floating point value on our hands.
+                numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
+            }
+            else {
+                // Deal with large numeric values.
+                BigInteger tmpValue = new BigInteger(numericValue, 10);
+
+                if (tmpValue.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0 ||
+                    tmpValue.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
+                    numericExpression = new DoubleLiteral(Double.valueOf(numericValue));
+                }
+                else {
+                    numericExpression = new IntegerLiteral(tmpValue.intValue());
+                }
+            }
+        }
+        catch (NumberFormatException e) {
+            throw parseException(TwistTokenType.NUMBER);
+        }
+
+        scan.next();
+
+        return numericExpression;
     }
 
     protected Expression buildJsonObject() throws ScriptSyntaxException {

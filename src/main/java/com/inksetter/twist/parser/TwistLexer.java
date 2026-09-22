@@ -238,6 +238,10 @@ public class TwistLexer {
                     nextChar();
                     return new TwistToken(TwistTokenType.DECREMENT, begin, startOfToken);
                 }
+                else if (hasNext() && peekChar() == '>') {
+                    nextChar();
+                    return new TwistToken(TwistTokenType.ARROW, begin, startOfToken);
+                }
                 else {
                     return new TwistToken(TwistTokenType.MINUS, begin, startOfToken);
                 }

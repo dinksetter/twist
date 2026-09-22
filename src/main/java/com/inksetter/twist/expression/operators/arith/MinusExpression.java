@@ -34,7 +34,7 @@ public class MinusExpression extends AbsractOperExpression {
                 LocalDateTime leftDt = LocalDateTime.ofInstant(leftDate.toInstant(), ZoneId.systemDefault());
                 LocalDateTime rightDt = LocalDateTime.ofInstant(rightDate.toInstant(), ZoneId.systemDefault());
 
-                Duration diff = Duration.between(leftDt, rightDt);
+                Duration diff = Duration.between(rightDt, leftDt);
 
                 long fullDays = diff.toDays();
                 long ms = diff.toMillis() - (fullDays * 1000 * 3600 * 24);

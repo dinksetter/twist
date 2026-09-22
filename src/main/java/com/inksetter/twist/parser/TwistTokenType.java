@@ -33,5 +33,6 @@ public enum TwistTokenType {
     DEF,
     FINALLY,
     TRUE, FALSE,
-    RETURN
+    RETURN,
+    ARROW
 }

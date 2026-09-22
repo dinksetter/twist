@@ -27,11 +27,23 @@ public class FunctionExpression implements Expression {
         TwistFunction func = BUILTINS.get(name.toLowerCase());
 
         if (func == null) {
+            Object obj = ctx.getVariable(name);
+            if (obj instanceof TwistFunction) {
+                func = (TwistFunction) obj;
+            }
+        }
+
+        if (func == null) {
             func = ctx.lookupFunction(name);
         }
 
         if (func == null) {
             throw new TwistException("unrecognized function: " + name);
+        }
+
+        // Some functions want to see their arguments as expressions, rather than as values.
+        if (func instanceof ExpressionFunction) {
+            return ((ExpressionFunction) func).invokeRaw(args, ctx);
         }
 
         List<Object> argValues = new ArrayList<>();

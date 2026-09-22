@@ -1,5 +1,6 @@
 package com.inksetter.twist.exec;
 
+import com.inksetter.twist.ExceptionMatcher;
 import com.inksetter.twist.TwistException;
 
 import java.util.List;
@@ -22,33 +23,26 @@ public class TryStatement implements Statement {
         } catch (Exception e) {
             if (catchBlocks != null) {
                 // If we're set up to catch errors, do so.
-                Class<? extends Exception> caughtClass = e.getClass();
-                Class<?>[] allClasses = caughtClass.getClasses();
                 for (CatchBlock catchBlock : catchBlocks) {
-                    for (Class cls = caughtClass; cls != null; cls = cls.getSuperclass()) {
-                        if (catchBlock.getTypeName().equals(cls.getSimpleName())) {
+                    Throwable matched = ExceptionMatcher.match(catchBlock.getTypeName(), e);
+                    if (matched != null) {
+                        // We execute the catch block, if it exists. If it's a
+                        // simple catch expression, then
+                        // we return the error results of the exception that got
+                        // thrown.
+                        StatementBlock block = catchBlock.getBlock();
 
-                            // We execute the catch block, if it exists. If it's a
-                            // simple catch expression, then
-                            // we return the error results of the exception that got
-                            // thrown.
-                            StatementBlock block = catchBlock.getBlock();
-
-                            // If there's a block of code to execute on this catch
-                            // expression, return the result of executing that
-                            // block.
-                            if (block != null) {
-                                String varName = catchBlock.getVarName();
-                                exec.pushStack(false);
-                                exec.setVariable(varName, e);
-                                try {
-                                    return block.execute(exec, true);
-                                }
-                                finally {
-                                    exec.popStack();
-                                }
-                            }
+                        // If there's a block of code to execute on this catch
+                        // expression, return the result of executing that
+                        // block.
+                        if (block != null) {
+                            ScriptContext catchFrame = exec.push();
+                            catchFrame.defineLocal(catchBlock.getVarName(), matched);
+                            return block.execute(catchFrame, true);
                         }
+
+                        // An empty catch block swallows the exception.
+                        return StatementResult.valueResult(null);
                     }
                 }
             }

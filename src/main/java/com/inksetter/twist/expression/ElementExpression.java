@@ -4,6 +4,7 @@ import com.inksetter.twist.*;
 
 import java.lang.reflect.Array;
 import java.util.List;
+import java.util.Map;
 
 public class ElementExpression implements Assignable {
 
@@ -15,30 +16,29 @@ public class ElementExpression implements Assignable {
     @Override
     public Object evaluate(EvalContext ctx) throws TwistException {
         Object value = _target.evaluate(ctx);
-        if (ValueUtils.getType(value) != TwistDataType.ARRAY) {
-            throw new TypeMismatchException("Expected array, got " + value);
-        }
-
         if (value == null) {
             throw new NullValueException(_target + " is null");
         }
+
         Object indexVal = _element.evaluate(ctx);
         if (indexVal == null) {
             throw new NullValueException(_element + " is null");
         }
 
-        int index = ValueUtils.asInt(indexVal);
+        // Maps are indexed by key, everything else by position.
+        if (value instanceof Map<?,?>) {
+            return ((Map<?,?>) value).get(indexVal);
+        }
 
-        Class<?> valueClass = value.getClass();
-        Object result = null;
         if (value instanceof List<?>) {
-            result = ((List<?>)value).get(index);
-        }
-        else if (valueClass.isArray()) {
-            result = ((Object[])value)[index];
+            return ((List<?>)value).get(ValueUtils.asInt(indexVal));
         }
 
-        return result;
+        if (value.getClass().isArray()) {
+            return Array.get(value, ValueUtils.asInt(indexVal));
+        }
+
+        throw new TypeMismatchException("Expected array, list or map, got " + value);
     }
 
     @Override
@@ -50,7 +50,10 @@ public class ElementExpression implements Assignable {
         }
 
         Object elementObj = _element.evaluate(exec);
-        if (obj.getClass().isArray()) {
+        if (obj instanceof Map) {
+            ((Map<Object, Object>) obj).put(elementObj, value);
+        }
+        else if (obj.getClass().isArray()) {
             if (!(elementObj instanceof Number)) {
                 throw new TypeMismatchException("Expected number");
             }
@@ -63,7 +66,7 @@ public class ElementExpression implements Assignable {
             ((List) obj).set(((Number) elementObj).intValue(), value);
         }
         else {
-            throw new TypeMismatchException("Expected array or list type");
+            throw new TypeMismatchException("Expected array, list or map type");
         }
     }
 
