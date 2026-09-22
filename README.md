@@ -20,7 +20,7 @@
 <dependency>
   <groupId>com.inksetter</groupId>
   <artifactId>twist</artifactId>
-  <version>1.11.0</version>
+  <version>1.12.0</version>
 </dependency>
 ```
 
