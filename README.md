@@ -96,6 +96,44 @@ Twist.parseScript("log('hello ' + user.name)").execute(ctx);
 
 You can also add a function later with `ctx.addFunction(name, function)`.
 
+### Functions that read their arguments as expressions
+
+A function that implements `ExpressionFunction` receives its arguments unevaluated, as `Expression`
+objects. That lets it see how an argument was written, or decide whether to evaluate it at all —
+useful for building things like a testing DSL. `AssertThrowsFunction` is a working example:
+
+```java
+ctx.addFunction("assertThrows", new AssertThrowsFunction());
+```
+
+```
+// Both forms run the code and check what it throws
+assertThrows(NumberFormatException, -> { int('x') })
+assertThrows(NumberFormatException, int('x'))
+
+// The matching exception is returned, so you can check it further
+e = assertThrows(NumberFormatException, -> { int('nope') })
+e.getMessage() =~ 'nope'
+
+// An exception thrown by a Java method is matched by its own type
+assertThrows(StringIndexOutOfBoundsException, -> { 'abc'.substring(10) })
+```
+
+The exception type is written as a bare name, exactly as in a `catch` clause, and matched the same
+way: by simple class name, including supertypes, against the exception and the causes it wraps. A
+string or a `Class`-valued variable works in that position too. If nothing is thrown, or the wrong
+type is, `assertThrows` throws a `TwistException` that a script can itself catch.
+
+An implementation must evaluate each argument it uses exactly once:
+
+```java
+public class MyFunction implements ExpressionFunction {
+    public Object invokeRaw(List<Expression> args, EvalContext ctx) throws TwistException {
+        return args.get(0).evaluate(ctx);
+    }
+}
+```
+
 ## Language Guide
 
 ### Statements and comments

@@ -5,6 +5,7 @@ import com.inksetter.twist.Expression;
 import com.inksetter.twist.TwistException;
 import com.inksetter.twist.exec.StatementBlock;
 import com.inksetter.twist.exec.UserDefFunction;
+import com.inksetter.twist.expression.function.ExpressionFunction;
 import com.inksetter.twist.expression.function.TwistFunction;
 
 import java.util.ArrayList;
@@ -24,6 +25,11 @@ public class CallExpression implements Expression {
 
         if (func == null) {
             throw new TwistException("not callable ");
+        }
+
+        // Some functions want to see their arguments as expressions, rather than as values.
+        if (func instanceof ExpressionFunction) {
+            return ((ExpressionFunction) func).invokeRaw(args, ctx);
         }
 
         List<Object> argValues = new ArrayList<>();

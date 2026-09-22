@@ -41,6 +41,11 @@ public class FunctionExpression implements Expression {
             throw new TwistException("unrecognized function: " + name);
         }
 
+        // Some functions want to see their arguments as expressions, rather than as values.
+        if (func instanceof ExpressionFunction) {
+            return ((ExpressionFunction) func).invokeRaw(args, ctx);
+        }
+
         List<Object> argValues = new ArrayList<>();
 
         for (Expression arg : args) {

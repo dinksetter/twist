@@ -1,8 +1,8 @@
 package com.inksetter.twist.exec;
 
+import com.inksetter.twist.ExceptionMatcher;
 import com.inksetter.twist.TwistException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TryStatement implements Statement {
@@ -23,18 +23,8 @@ public class TryStatement implements Statement {
         } catch (Exception e) {
             if (catchBlocks != null) {
                 // If we're set up to catch errors, do so.
-                // Exceptions thrown by Java code are wrapped in a TwistException. A catch block can
-                // name either the wrapper or the exception that caused it.
-                List<Throwable> candidates = new ArrayList<>();
-                for (Throwable t = e; t != null; t = t.getCause()) {
-                    candidates.add(t);
-                    if (!(t instanceof TwistException)) {
-                        break;
-                    }
-                }
-
                 for (CatchBlock catchBlock : catchBlocks) {
-                    Throwable matched = match(catchBlock, candidates);
+                    Throwable matched = ExceptionMatcher.match(catchBlock.getTypeName(), e);
                     if (matched != null) {
                         // We execute the catch block, if it exists. If it's a
                         // simple catch expression, then
@@ -71,23 +61,5 @@ public class TryStatement implements Statement {
                 finallyBlock.execute(exec, true);
             }
         }
-    }
-
-    /**
-     * Returns the first of the candidate exceptions whose type, or one of its supertypes, is named
-     * by the given catch block, or null if the catch block doesn't apply.
-     */
-    private Throwable match(CatchBlock catchBlock, List<Throwable> candidates) {
-        // Deepest cause first, so that a general catch block like catch (Exception e) binds the
-        // exception that was originally thrown rather than the TwistException wrapping it.
-        for (int i = candidates.size() - 1; i >= 0; i--) {
-            Throwable caught = candidates.get(i);
-            for (Class<?> cls = caught.getClass(); cls != null; cls = cls.getSuperclass()) {
-                if (catchBlock.getTypeName().equals(cls.getSimpleName())) {
-                    return caught;
-                }
-            }
-        }
-        return null;
     }
 }
