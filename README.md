@@ -96,6 +96,29 @@ Twist.parseScript("log('hello ' + user.name)").execute(ctx);
 
 You can also add a function later with `ctx.addFunction(name, function)`.
 
+### Resolving names your own way
+
+Extend `SimpleScriptContext` to give a script a fallback for names it doesn't know — functions
+looked up in a registry, variables fetched from a service, and so on:
+
+```java
+public class LookupContext extends SimpleScriptContext {
+    @Override
+    public TwistFunction lookupFunction(String name) {
+        TwistFunction found = super.lookupFunction(name);
+        return found != null ? found : myRegistry.get(name);
+    }
+}
+```
+
+Scripts run in nested scopes — a block, a loop, a function body, a lambda — and each is its own
+frame. Those frames delegate back to the context you created, so an override of `getVariable`,
+`isDefined`, `lookupFunction` or `addFunction` applies at any depth. Registered functions and real
+variables are still found first; the override only sees what twist couldn't resolve.
+
+Overriding `setVariable` or `getAll` catches only what happens at the top level of a script, because
+a variable created inside a nested scope belongs to that frame rather than to yours.
+
 ### Functions that read their arguments as expressions
 
 A function that implements `ExpressionFunction` receives its arguments unevaluated, as `Expression`

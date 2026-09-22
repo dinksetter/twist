@@ -9,11 +9,21 @@ import java.util.*;
  * The standard {@link ScriptContext}. Each instance is one stack frame, holding its own variables
  * and a reference to the frame that encloses it. Functions are registered once, on the root frame,
  * and shared by every frame below it.
+ * <p>
+ * A host can subclass this to add behavior, typically a fallback for names the context doesn't
+ * know. Nested frames — the ones created for blocks, loops, function bodies and lambdas — are plain
+ * frames, but they delegate to the root frame, which is the instance the host created. So
+ * overriding {@link #getVariable}, {@link #isDefined}, {@link #lookupFunction} or
+ * {@link #addFunction} takes effect everywhere in a script, at any depth.
+ * <p>
+ * Overriding {@link #setVariable} only intercepts writes made at the top level of a script, since a
+ * variable created in a nested scope belongs to that frame.
  */
 public class SimpleScriptContext implements ScriptContext {
 
     private final Map<String, Object> vars;
     private final SimpleScriptContext parent;
+    private final SimpleScriptContext root;
     private final boolean barrier;
     private final Map<String, TwistFunction> functions;
 
@@ -24,6 +34,7 @@ public class SimpleScriptContext implements ScriptContext {
     public SimpleScriptContext(Map<String,Object> initial, Map<String, TwistFunction> functions) {
         this.vars = new LinkedHashMap<>(initial);
         this.parent = null;
+        this.root = this;
         this.barrier = false;
         this.functions = new HashMap<>(functions);
     }
@@ -31,6 +42,7 @@ public class SimpleScriptContext implements ScriptContext {
     private SimpleScriptContext(SimpleScriptContext parent, boolean barrier) {
         this.vars = new LinkedHashMap<>();
         this.parent = parent;
+        this.root = parent.root;
         this.barrier = barrier;
         this.functions = parent.functions;
     }
@@ -47,40 +59,30 @@ public class SimpleScriptContext implements ScriptContext {
 
     @Override
     public boolean isDefined(String name) {
-        for (SimpleScriptContext frame = this; frame != null; frame = frame.parent) {
-            if (frame.vars.containsKey(name)) {
-                return true;
-            }
+        if (vars.containsKey(name)) {
+            return true;
         }
-        return false;
+        // Delegating rather than walking the chain here, so that an override on the root frame
+        // applies no matter which frame the question was asked in.
+        return parent != null && parent.isDefined(name);
     }
 
     @Override
     public Object getVariable(String name) {
         // Reads see the whole chain: this frame, then the frames enclosing it.
-        for (SimpleScriptContext frame = this; frame != null; frame = frame.parent) {
-            if (frame.vars.containsKey(name)) {
-                return frame.vars.get(name);
-            }
+        if (vars.containsKey(name)) {
+            return vars.get(name);
         }
-        return null;
+        return parent == null ? null : parent.getVariable(name);
     }
 
     @Override
     public void setVariable(String name, Object value) {
         // Assigning to an existing name updates it where it lives, unless a call boundary is in the
         // way. Otherwise the variable is created in this frame.
-        for (SimpleScriptContext frame = this; frame != null; frame = frame.parent) {
-            if (frame.vars.containsKey(name)) {
-                frame.vars.put(name, value);
-                return;
-            }
-            if (frame.barrier) {
-                break;
-            }
+        if (!assignToExisting(name, value)) {
+            vars.put(name, value);
         }
-
-        vars.put(name, value);
     }
 
     @Override
@@ -109,15 +111,40 @@ public class SimpleScriptContext implements ScriptContext {
 
     @Override
     public TwistFunction lookupFunction(String name) {
+        if (root != this) {
+            return root.lookupFunction(name);
+        }
         return functions.get(name);
     }
 
     @Override
     public void addFunction(String name, TwistFunction function) {
+        if (root != this) {
+            root.addFunction(name, function);
+            return;
+        }
         functions.put(name, function);
     }
 
     public List<String> getFunctionNames() {
+        if (root != this) {
+            return root.getFunctionNames();
+        }
         return new ArrayList<>(functions.keySet());
+    }
+
+    /**
+     * Assigns to an existing binding in this frame or an enclosing one, stopping at a call
+     * boundary. Returns false if the name isn't bound anywhere that this frame can assign to.
+     */
+    private boolean assignToExisting(String name, Object value) {
+        if (vars.containsKey(name)) {
+            vars.put(name, value);
+            return true;
+        }
+        if (barrier || parent == null) {
+            return false;
+        }
+        return parent.assignToExisting(name, value);
     }
 }
